@@ -1,6 +1,6 @@
-# plato_perfecto
+# Plato perfecto
 
-A new Flutter project.
+Flutter project for Hiberus University by Belén Grande
 
 ## Getting Started
 
