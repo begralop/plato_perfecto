@@ -1,7 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:plato_perfecto/firebase_options.dart';
 import 'package:plato_perfecto/splash_screen.dart';
+import 'package:plato_perfecto/widget_tree.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform
+  );
   runApp(const MyApp());
 }
 
@@ -38,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _counter++;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {

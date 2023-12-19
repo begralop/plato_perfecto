@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1049156752358",
+    "project_id": "plato-perfecto",
+    "storage_bucket": "plato-perfecto.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1049156752358:android:127506d859a94363e4fc27",
+        "android_client_info": {
+          "package_name": "com.example.plato_perfecto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1049156752358-3inbb8hm86hfid0e1h77058u6b1437uv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.plato_perfecto",
+            "certificate_hash": "3258da73f536b15feafc871f3581a33ce5e4fd0d"
+          }
+        },
+        {
+          "client_id": "1049156752358-olsfklqh7rgjrjs8q01c6ber6et36uqm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8eto-2c0SF4EegvFAchPwz3pG6Db2GpY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1049156752358-olsfklqh7rgjrjs8q01c6ber6et36uqm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1049156752358-b193mpvtppm08jlijmg1uc6i70kjdid3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.platoPerfecto.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
