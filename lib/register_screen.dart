@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:plato_perfecto/home_screen.dart';
 import 'package:plato_perfecto/login_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -15,25 +17,60 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   String? errorMessageLogin = '';
   bool isLogin = false;
-  bool _obscureText = true;
   bool passwordVisible = true;
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  late String email, password;
+  late String email, password, name;
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
   Future<UserCredential> createUserWithEmailAndPassword(
-      String email, String password) async {
+      String email, String password, String displayName) async {
     try {
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
+      await userCredential.user?.updateDisplayName(displayName);
+
+      // Recargamos el usuario para asegurarnos de obtener la información más reciente.
+      await userCredential.user?.reload();
+
       return userCredential;
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<User?> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    if (googleUser != null) {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(
+        GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
+        ),
+      );
+      setState(() {
+        isLogin = true;
+      });
+
+      User? user = userCredential.user;
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => HomeScreen(user: user)));
+      /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
+      prefs.setBool('auth', true);  */
+      return user;
+    }
+    return null;
   }
 
   String? validatePassword(String value) {
@@ -78,18 +115,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 48),
                           child: TextFormField(
-                              keyboardType: TextInputType.emailAddress,
-                              style: const TextStyle(fontSize: 14),
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Nombre',
-                                  hintText: 'Introduzca su nombre...',
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 6, horizontal: 12)),
-                              validator: MultiValidator([
-                                RequiredValidator(
-                                    errorText: "Introduzca un nombre."),
-                              ])),
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(fontSize: 14),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Nombre',
+                                hintText: 'Introduzca su nombre...',
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 6, horizontal: 12)),
+                            validator: MultiValidator([
+                              RequiredValidator(
+                                  errorText: "Introduzca un nombre."),
+                            ]),
+                            onSaved: (String? value) {
+                              name = value!;
+                            },
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
@@ -120,12 +161,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               left: 48.0, right: 48.0, top: 16, bottom: 0),
                           child: TextFormField(
                             controller: _controllerPassword,
-                            obscureText: true,
+                            obscureText: passwordVisible,
                             style: const TextStyle(fontSize: 14),
                             decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
                                 labelText: 'Password',
-                                hintText: 'Introduzca su contraseña',
                                 suffixIcon: IconButton(
                                   icon: Icon(passwordVisible
                                       ? Icons.visibility
@@ -138,6 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     );
                                   },
                                 ),
+                                hintText: 'Introduzca su contraseña',
                                 contentPadding: const EdgeInsets.symmetric(
                                     vertical: 4, horizontal: 12)),
                             validator: MultiValidator([
@@ -176,19 +217,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   formkey.currentState!.save();
                                   UserCredential? credentials =
                                       await createUserWithEmailAndPassword(
-                                          email, password);
+                                          email, password, name);
                                   if (credentials.user != null) {
                                     await credentials.user!
                                         .sendEmailVerification();
                                     Fluttertoast.showToast(
-                                        msg: "Revise su bandeja de correo electrónico (o Spam)",
+                                        msg:
+                                            "Revise su bandeja de correo electrónico (o Spam)",
                                         toastLength: Toast.LENGTH_SHORT,
                                         gravity: ToastGravity.CENTER,
                                         timeInSecForIosWeb: 2,
                                         textColor: Colors.white,
                                         fontSize: 16.0);
+                                         Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const LoginScreen()));
                                   }
-                                } else {}
+                                }
                               },
                               child: const Text(
                                 'Registrarse',
@@ -206,7 +252,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         SignInButton(
                           Buttons.GoogleDark,
                           text: "Registrarse con Google",
-                          onPressed: () {},
+                          onPressed: () {
+                            signInWithGoogle();
+                          },
                         ),
                         const SizedBox(
                           height: 16,

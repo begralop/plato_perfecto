@@ -4,7 +4,8 @@ import 'package:plato_perfecto/auth.dart';
 import 'package:plato_perfecto/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.user});
+  final User? user;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -13,10 +14,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  final User? user = Auth().currentUser;
+
 
   Future<void> signOut() async {
-    await Auth().signOut().then((value) => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginScreen()),(route) => false));
+    await Auth().signOut().then((value) => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const LoginScreen()),(route) => false));
   }
 
   @override
@@ -36,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        child: Text(user?.displayName ?? "useremail"),
+          child: Text(widget.user?.displayName ?? widget.user?.email ?? "User"),
       ),
     ));
   }

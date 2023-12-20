@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -20,21 +19,20 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLogin = false;
   String? errorMessageLogin = '';
   bool passwordVisible = true;
-final GoogleSignIn googleSignIn = GoogleSignIn(); 
-  String? name, imageUrl, userEmail, uid; 
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  String? name, imageUrl, userEmail, uid;
   late String email, password;
   FirebaseAuth auth = FirebaseAuth.instance;
 
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
-  Future<dynamic> signInWithEmailAndPassword(
+  Future<User?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
-      return userCredential;
-    } catch (e) {
-      if (user?.emailVerified == false) {
+
+      if (userCredential.user?.emailVerified == false) {
         Fluttertoast.showToast(
             msg: "El usuario no ha realizado la verificación de correo.",
             toastLength: Toast.LENGTH_SHORT,
@@ -43,48 +41,48 @@ final GoogleSignIn googleSignIn = GoogleSignIn();
             textColor: Colors.white,
             fontSize: 16.0);
       } else {
-        Fluttertoast.showToast(
-          msg: "El usuario o la contraseña no son correctos.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 3,
-          textColor: Colors.white,
-        );
+        return userCredential.user;
       }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "El usuario o la contraseña no son correctos.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 3,
+        textColor: Colors.white,
+      );
     }
+    return null;
   }
 
-  Future<dynamic> signInWithGoogle() async {
-    User? user; 
- // Trigger the authentication flow
-  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+  Future<User?> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-  // Obtain the auth details from the request
-  final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;  
-  final credential = GoogleAuthProvider.credential(
-    accessToken: googleAuth?.accessToken,
-    idToken: googleAuth?.idToken,
-  );
-  
-    if (googleUser != null) { 
-      uid = googleUser.id; 
-      name = googleUser.displayName; 
-      userEmail = googleUser.email; 
-      imageUrl = googleUser.photoUrl; 
-        
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
 
-  Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const HomeScreen()));
-    /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
+    if (googleUser != null) {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(
+      GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      ),
+    );
+      setState(() {
+        isLogin = true;
+      });
+      
+      User? user = userCredential.user;
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => HomeScreen(user: user)));
+      /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
       prefs.setBool('auth', true);  */
-      print("name: $name"); 
-      print("userEmail: $userEmail"); 
-      print("imageUrl: $imageUrl"); 
-    } 
-return await FirebaseAuth.instance.signInWithCredential(credential);
+      return user;
+    }
+    return null;
   }
 
   final User? user = Auth().currentUser;
@@ -132,7 +130,7 @@ return await FirebaseAuth.instance.signInWithCredential(credential);
                           Buttons.GoogleDark,
                           text: "Continuar con Google",
                           onPressed: () {
-                            signInWithGoogle(); 
+                            signInWithGoogle();
                           },
                         ),
                         const SizedBox(height: 14),
@@ -219,11 +217,6 @@ return await FirebaseAuth.instance.signInWithCredential(credential);
                               RequiredValidator(
                                   errorText:
                                       "El email o la contraseña son incorrectos."),
-/*                       MinLengthValidator(6,
-                          errorText: "Password should be atleast 6 characters"),
-                      MaxLengthValidator(15,
-                          errorText:
-                          "Password should not be greater than 15 characters") */
                             ]),
                             onSaved: (String? value) {
                               password = value!;
@@ -251,18 +244,18 @@ return await FirebaseAuth.instance.signInWithCredential(credential);
                               onPressed: () async {
                                 if (formkey.currentState!.validate()) {
                                   formkey.currentState!.save();
-                                  UserCredential? credentials =
+                                  User? user =
                                       await signInWithEmailAndPassword(
                                           email, password);
-                                  if (credentials?.user != null) {
-                                    if (credentials?.user?.emailVerified ==
+                                  if (user != null) {
+                                    if (user.emailVerified ==
                                         true) {
                                       // ignore: use_build_context_synchronously
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (_) =>
-                                                  const HomeScreen()));
+                                                   HomeScreen(user: user)));
                                     }
                                   }
                                 } else {}
