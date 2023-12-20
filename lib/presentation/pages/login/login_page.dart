@@ -1,45 +1,60 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:plato_perfecto/home_screen.dart';
-import 'package:plato_perfecto/login_screen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:plato_perfecto/auth.dart';
+import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
+import 'package:plato_perfecto/presentation/pages/register/register_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
+import 'package:go_router/go_router.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
-  String? errorMessageLogin = '';
+class _LoginPageState extends State<LoginPage> {
   bool isLogin = false;
+  String? errorMessageLogin = '';
   bool passwordVisible = true;
-
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  String? name, imageUrl, userEmail, uid;
+  late String email, password;
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  late String email, password, name;
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
-  Future<UserCredential> createUserWithEmailAndPassword(
-      String email, String password, String displayName) async {
+  Future<User?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
-      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
-      await userCredential.user?.updateDisplayName(displayName);
 
-      // Recargamos el usuario para asegurarnos de obtener la información más reciente.
-      await userCredential.user?.reload();
-
-      return userCredential;
+      if (userCredential.user?.emailVerified == false) {
+        Fluttertoast.showToast(
+            msg: "El usuario no ha realizado la verificación de correo.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 3,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      } else {
+        return userCredential.user;
+      }
     } catch (e) {
-      rethrow;
+      Fluttertoast.showToast(
+        msg: "El usuario o la contraseña no son correctos.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 3,
+        textColor: Colors.white,
+      );
     }
+    return null;
   }
 
   Future<User?> signInWithGoogle() async {
@@ -64,14 +79,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       User? user = userCredential.user;
       // ignore: use_build_context_synchronously
-      Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomeScreen(user: user)));
+      GoRouter.of(context).push(
+        NavigationRoutes.HOME_ROUTE,
+        extra: user,
+      );
       /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
       prefs.setBool('auth', true);  */
       return user;
     }
     return null;
   }
+
+  final User? user = Auth().currentUser;
 
   String? validatePassword(String value) {
     if (value.isEmpty) {
@@ -104,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Regístrate para tener todas tus recetas en un único lugar',
+                          'Todas tus recetas en un único lugar',
                           style: TextStyle(
                             color: Color.fromARGB(255, 110, 8, 211),
                             fontFamily: 'Linden Hill',
@@ -112,33 +131,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         const SizedBox(height: 18),
+                        SignInButton(
+                          Buttons.GoogleDark,
+                          text: "Continuar con Google",
+                          onPressed: () {
+                            signInWithGoogle();
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 106,
+                              decoration: const ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      width: 0.5, color: Colors.black),
+                                ),
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('o',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                  )),
+                            ),
+                            Container(
+                              width: 106,
+                              decoration: const ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      width: 0.5, color: Colors.black),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 48),
                           child: TextFormField(
-                            keyboardType: TextInputType.emailAddress,
                             style: const TextStyle(fontSize: 14),
-                            decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Nombre',
-                                hintText: 'Introduzca su nombre...',
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: 6, horizontal: 12)),
-                            validator: MultiValidator([
-                              RequiredValidator(
-                                  errorText: "Introduzca un nombre."),
-                            ]),
-                            onSaved: (String? value) {
-                              name = value!;
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 48.0, right: 48.0, top: 16, bottom: 0),
-                          child: TextFormField(
-                            controller: _controllerEmail,
                             keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(fontSize: 14),
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 labelText: 'Email',
@@ -160,7 +198,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           padding: const EdgeInsets.only(
                               left: 48.0, right: 48.0, top: 16, bottom: 0),
                           child: TextFormField(
-                            controller: _controllerPassword,
                             obscureText: passwordVisible,
                             style: const TextStyle(fontSize: 14),
                             decoration: InputDecoration(
@@ -185,9 +222,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               RequiredValidator(
                                   errorText:
                                       "El email o la contraseña son incorrectos."),
-                              MinLengthValidator(6,
-                                  errorText:
-                                      "La contraseña debe tener mínimo 6 carácteres"),
                             ]),
                             onSaved: (String? value) {
                               password = value!;
@@ -196,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         const SizedBox(
-                          height: 20,
+                          height: 16,
                         ),
                         SizedBox(
                           width: 212,
@@ -215,29 +249,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               onPressed: () async {
                                 if (formkey.currentState!.validate()) {
                                   formkey.currentState!.save();
-                                  UserCredential? credentials =
-                                      await createUserWithEmailAndPassword(
-                                          email, password, name);
-                                  if (credentials.user != null) {
-                                    await credentials.user!
-                                        .sendEmailVerification();
-                                    Fluttertoast.showToast(
-                                        msg:
-                                            "Revise su bandeja de correo electrónico (o Spam)",
-                                        toastLength: Toast.LENGTH_SHORT,
-                                        gravity: ToastGravity.CENTER,
-                                        timeInSecForIosWeb: 2,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0);
-                                         Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const LoginScreen()));
+                                  User? user = await signInWithEmailAndPassword(
+                                      email, password);
+                                  if (user != null) {
+                                    if (user.emailVerified == true) {
+                                      GoRouter.of(context).push(
+                                        NavigationRoutes.HOME_ROUTE,
+                                        extra: user,
+                                      );
+                                    }
                                   }
-                                }
+                                } else {}
                               },
                               child: const Text(
-                                'Registrarse',
+                                'Login',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -249,24 +274,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(
                           height: 16,
                         ),
-                        SignInButton(
-                          Buttons.GoogleDark,
-                          text: "Registrarse con Google",
-                          onPressed: () {
-                            signInWithGoogle();
-                          },
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        const Text('¿Ya tienes una cuenta?'),
+                        const Text('¿Aún no tienes una cuenta?'),
                         TextButton(
                           onPressed: () {
                             isLogin = !isLogin;
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const LoginScreen()));
+                                    builder: (_) => const RegisterPage()));
                           },
                           style: ButtonStyle(
                             textStyle: MaterialStateProperty.all(
@@ -277,7 +292,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ),
-                          child: const Text('Inicia sesión'),
+                          child: const Text('Crear cuenta'),
                         ),
                       ]),
                     ),
