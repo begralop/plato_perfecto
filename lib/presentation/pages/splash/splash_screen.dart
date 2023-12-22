@@ -21,29 +21,21 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     _auth.authStateChanges().listen((User? user) {
-
-      if(!mounted) return;
+      if (!mounted) return;
 
       setState(() {
         _user = user;
       });
 
       if (_user == null) {
-        print("soy nulo");
-        print(user);
-
         Future.delayed(const Duration(seconds: 3), () {
           context.go(NavigationRoutes.LOGIN_ROUTE);
         });
       } else {
-        print(user);
-        print("no soy nulo");
-
         if (_user!.emailVerified == true) {
           Future.delayed(const Duration(seconds: 3), () {
             context.go(
               NavigationRoutes.HOME_ROUTE,
-              extra: user,
             );
           });
         } else {

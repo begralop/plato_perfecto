@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class FavoritePage extends StatefulWidget {
@@ -10,7 +11,8 @@ class FavoritePage extends StatefulWidget {
 class _FavoritePageState extends State<FavoritePage> {
    @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(      backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
+
       appBar: AppBar(
         title: const Text("Second Page"),
       ),

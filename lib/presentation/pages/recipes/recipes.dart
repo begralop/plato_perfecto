@@ -10,7 +10,8 @@ class RecipesPage extends StatefulWidget {
 class _RecipesPageState extends State<RecipesPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(      backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
+
       appBar: AppBar(
         title: const Text("Recipes Page"),
       ),

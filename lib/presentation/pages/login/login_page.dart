@@ -4,8 +4,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:plato_perfecto/auth.dart';
-import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
-import 'package:plato_perfecto/presentation/pages/register/register_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
 import 'package:go_router/go_router.dart';
@@ -76,15 +74,10 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLogin = true;
       });
-
       User? user = userCredential.user;
-      // ignore: use_build_context_synchronously
       context.go(
         NavigationRoutes.HOME_ROUTE,
-        extra: user,
       );
-      /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
-      prefs.setBool('auth', true);  */
       return user;
     }
     return null;
@@ -102,8 +95,6 @@ class _LoginPageState extends State<LoginPage> {
     } else
       return null;
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: TextFormField(
                             style: const TextStyle(fontSize: 14),
                             keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 labelText: 'Email',
@@ -202,6 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: TextFormField(
                             obscureText: passwordVisible,
                             style: const TextStyle(fontSize: 14),
+                            textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
                                 labelText: 'Password',
@@ -255,9 +248,8 @@ class _LoginPageState extends State<LoginPage> {
                                       email, password);
                                   if (user != null) {
                                     if (user.emailVerified == true) {
-                                      GoRouter.of(context).push(
+                                      context.go(
                                         NavigationRoutes.HOME_ROUTE,
-                                        extra: user,
                                       );
                                     }
                                   }
@@ -280,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           onPressed: () {
                             isLogin = !isLogin;
-                             context.go(NavigationRoutes.REGISTER_ROUTE);
+                            context.go(NavigationRoutes.REGISTER_ROUTE);
                           },
                           style: ButtonStyle(
                             textStyle: MaterialStateProperty.all(
@@ -298,5 +290,4 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ]))));
   }
-  
 }

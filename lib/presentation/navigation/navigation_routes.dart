@@ -46,7 +46,7 @@ final GoRouter router =
         StatefulShellBranch(routes: [
           GoRoute(
             path: NavigationRoutes.HOME_ROUTE,
-            builder: (context, state) =>   HomePage(user: state.extra as User?), 
+            builder: (context, state) =>   HomePage(), 
           ),
         ]),
         StatefulShellBranch(routes: [

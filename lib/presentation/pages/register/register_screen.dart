@@ -66,9 +66,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
       User? user = userCredential.user;
       // ignore: use_build_context_synchronously
-      GoRouter.of(context).push(
+      context.go(
         NavigationRoutes.HOME_ROUTE,
-        extra: user,
       );
 
       /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
@@ -120,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 48),
                           child: TextFormField(
-                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 14),
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
@@ -142,6 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               left: 48.0, right: 48.0, top: 16, bottom: 0),
                           child: TextFormField(
                             controller: _controllerEmail,
+                            textInputAction: TextInputAction.next,
                             keyboardType: TextInputType.emailAddress,
                             style: const TextStyle(fontSize: 14),
                             decoration: const InputDecoration(
@@ -166,6 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               left: 48.0, right: 48.0, top: 16, bottom: 0),
                           child: TextFormField(
                             controller: _controllerPassword,
+                            textInputAction: TextInputAction.done,
                             obscureText: passwordVisible,
                             style: const TextStyle(fontSize: 14),
                             decoration: InputDecoration(
