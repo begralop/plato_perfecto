@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
 
       User? user = userCredential.user;
       // ignore: use_build_context_synchronously
-      GoRouter.of(context).push(
+      context.go(
         NavigationRoutes.HOME_ROUTE,
         extra: user,
       );
@@ -102,6 +102,8 @@ class _LoginPageState extends State<LoginPage> {
     } else
       return null;
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -278,10 +280,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           onPressed: () {
                             isLogin = !isLogin;
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const RegisterPage()));
+                             context.go(NavigationRoutes.REGISTER_ROUTE);
                           },
                           style: ButtonStyle(
                             textStyle: MaterialStateProperty.all(
@@ -299,4 +298,5 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ]))));
   }
+  
 }

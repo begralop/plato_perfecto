@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plato_perfecto/auth.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
-import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.user});
@@ -16,7 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   FirebaseAuth auth = FirebaseAuth.instance;
   Future<void> signOut() async {
-    await Auth().signOut().then((value) => GoRouter.of(context).push( NavigationRoutes.INITIAL_ROUTE));
+    await Auth().signOut().then((value) => context.go(NavigationRoutes.LOGIN_ROUTE));
   }
 
   @override

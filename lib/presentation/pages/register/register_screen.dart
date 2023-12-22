@@ -66,10 +66,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
       User? user = userCredential.user;
       // ignore: use_build_context_synchronously
-           GoRouter.of(context).push(
-      NavigationRoutes.HOME_ROUTE,
-      extra: user,
-    );
+      GoRouter.of(context).push(
+        NavigationRoutes.HOME_ROUTE,
+        extra: user,
+      );
 
       /*   SharedPreferences prefs = await SharedPreferences.getInstance(); 
       prefs.setBool('auth', true);  */
@@ -234,8 +234,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         timeInSecForIosWeb: 2,
                                         textColor: Colors.white,
                                         fontSize: 16.0);
-                                                   context.go(NavigationRoutes.INITIAL_ROUTE);
-
+                                    context.go(NavigationRoutes.LOGIN_ROUTE);
                                   }
                                 }
                               },
@@ -266,8 +265,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextButton(
                           onPressed: () {
                             isLogin = !isLogin;
-                                                                               context.go(NavigationRoutes.INITIAL_ROUTE);
-
+                            context.go(NavigationRoutes.LOGIN_ROUTE);
                           },
                           style: ButtonStyle(
                             textStyle: MaterialStateProperty.all(

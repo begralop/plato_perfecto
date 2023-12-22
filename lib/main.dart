@@ -1,8 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:plato_perfecto/firebase_options.dart';
-import 'package:plato_perfecto/presentation/pages/splash/splash_screen.dart';
-import 'package:plato_perfecto/presentation/navigation/initial_tree.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
 
 Future<void> main() async {
@@ -18,13 +16,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const SplashScreen(),
+    return MaterialApp.router(
+      routerConfig: router,
     );
   }
 }

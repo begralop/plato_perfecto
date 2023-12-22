@@ -10,8 +10,9 @@ final GoogleSignIn _googleSignIn = new GoogleSignIn();
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   Future <void> signOut() async {
-    await _firebaseAuth.signOut(); 
+    try {
+      await _firebaseAuth.signOut(); 
   await _googleSignIn.signOut();
-
+    } catch(e) {}
   }
 }

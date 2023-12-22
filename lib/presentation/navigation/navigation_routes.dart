@@ -6,9 +6,14 @@ import 'package:plato_perfecto/presentation/pages/home/home_page_navbar.dart';
 import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
 import 'package:plato_perfecto/presentation/pages/profile/profile.dart';
 import 'package:plato_perfecto/presentation/pages/recipes/recipes.dart';
+import 'package:plato_perfecto/presentation/pages/register/register_screen.dart';
+import 'package:plato_perfecto/presentation/pages/splash/splash_screen.dart';
 
 class NavigationRoutes {
   static const INITIAL_ROUTE = "/";
+
+  static const LOGIN_ROUTE = "/login";
+  static const REGISTER_ROUTE = "/register";
 
   static const HOME_ROUTE = "/home";
   static const RECIPES_LIST_ROUTE = "/recipes";
@@ -25,8 +30,14 @@ final GoRouter router =
   GoRouter(initialLocation: NavigationRoutes.INITIAL_ROUTE, routes: [
    GoRoute(
     path: NavigationRoutes.INITIAL_ROUTE,
+    builder: (context, state) => SplashScreen(),
+  ), GoRoute(
+    path: NavigationRoutes.LOGIN_ROUTE,
     builder: (context, state) => LoginPage(),
-  ), 
+  ), GoRoute(
+    path: NavigationRoutes.REGISTER_ROUTE,
+    builder: (context, state) => RegisterPage(),
+  ),
   StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => HomePageNavbar(
             navigationShell: navigationShell,
