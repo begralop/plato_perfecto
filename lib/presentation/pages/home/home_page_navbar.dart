@@ -15,6 +15,7 @@ class _HomePageNavbarState extends State<HomePageNavbar> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: widget.navigationShell,
+      backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         margin: const EdgeInsets.only(top: 10),
@@ -50,7 +51,7 @@ class _HomePageNavbarState extends State<HomePageNavbar> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withOpacity(0.2),
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, -5),
@@ -82,7 +83,7 @@ class _HomePageNavbarState extends State<HomePageNavbar> {
                 NavigationDestination(
                   icon: Icon(Icons.favorite_border),
                   selectedIcon: Icon(Icons.favorite),
-                  label: "Favoritos",
+                  label: "Favoritas",
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.person_outline),

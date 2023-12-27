@@ -48,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 32),
+        padding: const EdgeInsets.symmetric(vertical: 45, horizontal: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
