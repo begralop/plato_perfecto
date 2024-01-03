@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plato_perfecto/presentation/pages/recipes/create_recipe.dart';
 
 class HomePageNavbar extends StatefulWidget {
   const HomePageNavbar({Key? key, required this.navigationShell})
@@ -11,6 +12,28 @@ class HomePageNavbar extends StatefulWidget {
 }
 
 class _HomePageNavbarState extends State<HomePageNavbar> {
+
+PageRouteBuilder _customPageRouteBuilder() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) {
+        // Esta es la pantalla que se abrirá
+        return CreateRecipe();
+      },
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0); // desde la parte inferior
+        const end = Offset.zero;
+        const curve = Curves.easeInOut;
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        var offsetAnimation = animation.drive(tween);
+
+        // Aplica la animación de deslizamiento desde abajo hacia arriba
+        return SlideTransition(position: offsetAnimation, child: child);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +51,12 @@ class _HomePageNavbarState extends State<HomePageNavbar> {
           focusColor: Colors.transparent,
           foregroundColor: Colors.transparent,
           splashColor: Colors.transparent,
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              _customPageRouteBuilder(),
+            );
+          },
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(100),
               side: const BorderSide(width: 10, color: Colors.white)),
