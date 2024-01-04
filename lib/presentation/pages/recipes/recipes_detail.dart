@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 
 class RecipesDetail extends StatefulWidget {
-  const RecipesDetail({super.key});
+  final String recipeName;
+  //final String imageUrl;
+  final String time;
+  final String people;
+  final String ingredient;
+
+  const RecipesDetail(
+      {Key? key,
+      required this.recipeName,
+//   required this.imageUrl,
+      required this.people,
+      required this.time,
+      required this.ingredient})
+      : super(key: key);
 
   @override
   State<RecipesDetail> createState() => _RecipesDetailState();
@@ -29,22 +42,26 @@ class _RecipesDetailState extends State<RecipesDetail> {
               ),
             ),
             Positioned(
-            top: 30, // Puedes ajustar la posición según tus necesidades
-            left: 10,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: IconButton(
-                icon: Icon(Icons.arrow_back , size: 25,),
-                color: Colors.black, // Puedes ajustar el color del ícono según tus necesidades
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+              top: 30, // Puedes ajustar la posición según tus necesidades
+              left: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    size: 25,
+                  ),
+                  color: Colors
+                      .black, // Puedes ajustar el color del ícono según tus necesidades
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
               ),
             ),
-          ),
             // Contenedor con borde circular arriba y que ocupa el espacio restante
             Positioned(
               bottom: 0,
@@ -63,19 +80,24 @@ class _RecipesDetailState extends State<RecipesDetail> {
                         30.0), // Ajusta el radio según tus necesidades
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // El contenido debajo de la imagen
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Pizza carbonara',
-                          style: TextStyle(
+                        Expanded(
+                          child: Text(
+                            widget.recipeName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 110, 8, 211)),
+                              color: Color.fromARGB(255, 110, 8, 211),
+                            ),
+                          ),
                         ),
                         Icon(
                           Icons.favorite,
@@ -93,7 +115,7 @@ class _RecipesDetailState extends State<RecipesDetail> {
                             color: Color.fromRGBO(0, 0, 0, 0.667)),
                         SizedBox(width: 4),
                         Text(
-                          "15 min",
+                          "${widget.time} min",
                           style: TextStyle(
                               fontSize: 12,
                               color: Color.fromRGBO(0, 0, 0, 0.667)),
@@ -103,21 +125,11 @@ class _RecipesDetailState extends State<RecipesDetail> {
                             color: Color.fromRGBO(0, 0, 0, 0.667)),
                         SizedBox(width: 4),
                         Text(
-                          "2",
+                          "${widget.people} comensales",
                           style: TextStyle(
                               fontSize: 12,
                               color: Color.fromRGBO(0, 0, 0, 0.667)),
                         ),
-                        SizedBox(width: 16),
-                        Icon(Icons.grass,
-                            color: Color.fromRGBO(0, 0, 0, 0.667)),
-                        SizedBox(width: 4),
-                        Text(
-                          "400 kcal",
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Color.fromRGBO(0, 0, 0, 0.667)),
-                        )
                       ],
                     ),
                     SizedBox(height: 16),
@@ -134,14 +146,7 @@ class _RecipesDetailState extends State<RecipesDetail> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Masa de pizza",
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Color.fromRGBO(0, 0, 0, 0.667)),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "1",
+                          widget.ingredient,
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -151,46 +156,6 @@ class _RecipesDetailState extends State<RecipesDetail> {
                     ),
                     SizedBox(height: 8),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Nata",
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Color.fromRGBO(0, 0, 0, 0.667)),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "200ml",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Bacon",
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Color.fromRGBO(0, 0, 0, 0.667)),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "100gr",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                        ),
-                      ],
-                    ),
                     // Puedes agregar más widgets según tus necesidades
                   ],
                 ),

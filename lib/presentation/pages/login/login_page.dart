@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -54,34 +55,59 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
+Future<User?> signInWithGoogle() async {
+  // Iniciar el flujo de autenticación con Google
+  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-  Future<User?> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+  // Obtener los detalles de autenticación de la solicitud
+  final GoogleSignInAuthentication? googleAuth =
+      await googleUser?.authentication;
 
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+  if (googleUser != null) {
+    // Autenticar con Firebase usando las credenciales de Google
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithCredential(
+      GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      ),
+    );
 
-    if (googleUser != null) {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(
-        GoogleAuthProvider.credential(
-          accessToken: googleAuth?.accessToken,
-          idToken: googleAuth?.idToken,
-        ),
-      );
-      setState(() {
-        isLogin = true;
-      });
-      User? user = userCredential.user;
-      context.go(
-        NavigationRoutes.HOME_ROUTE,
-      );
-      return user;
-    }
-    return null;
+    // Crear un documento en la colección 'users' para el nuevo usuario (si aún no existe)
+    await _createUserDocument(userCredential.user!);
+
+    // Establecer el estado de login
+    setState(() {
+      isLogin = true;
+    });
+
+    // Obtener el objeto User del UserCredential
+    User? user = userCredential.user;
+
+    // Navegar a la ruta de inicio
+    context.go(NavigationRoutes.HOME_ROUTE);
+
+    return user;
   }
+
+  // Si no se pudo autenticar, devolver null
+  return null;
+}
+
+Future<void> _createUserDocument(User user) async {
+  // Verificar si el usuario ya existe en la colección 'users'
+  DocumentSnapshot userDoc =
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+  // Crear el documento solo si el usuario no existe
+  if (!userDoc.exists) {
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'email': user.email,
+      'displayName': user.displayName,
+      // Puedes agregar más campos según tus necesidades
+    });
+  }
+}
 
   final User? user = Auth().currentUser;
 

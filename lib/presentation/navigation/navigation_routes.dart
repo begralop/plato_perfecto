@@ -60,30 +60,50 @@ final GoRouter router =
             builder: (context, state) => HomePage(),
           ),
         ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: NavigationRoutes.RECIPES_LIST_ROUTE,
-            builder: (context, state) => RecipesPage(),
-            routes: [
-              GoRoute(
-                path: NavigationRoutes._DETAIL_RECIPE_ROUTE,
-                builder: (context, state) => const RecipesDetail(),
-              )
-            ],
-          ),
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: NavigationRoutes.FAVOURITE_ROUTE,
-            builder: (context, state) => FavoritePage(),
-            routes: [
-              GoRoute(
-                path: NavigationRoutes._DETAIL_FAVORITE_ROUTE,
-                builder: (context, state) => const RecipesDetail(),
-              )
-            ],
-          )
-        ]),
+StatefulShellBranch(routes: [
+  GoRoute(
+    path: NavigationRoutes.RECIPES_LIST_ROUTE,
+    builder: (context, state) => RecipesPage(),
+    routes: [
+      GoRoute(
+        path: NavigationRoutes._DETAIL_RECIPE_ROUTE,
+        builder: (context, state) {
+          final Map<String, dynamic> params =
+              state.extra as Map<String, dynamic>;
+
+          return RecipesDetail(
+            recipeName: params['name'] ?? '',
+            people: params['people'] ?? '',
+            time: params['time'] ?? '',
+            ingredient: params['ingredient'] ?? '',
+          );
+        },
+      )
+    ],
+  ),
+]),
+StatefulShellBranch(routes: [
+  GoRoute(
+    path: NavigationRoutes.FAVOURITE_ROUTE,
+    builder: (context, state) => FavoritePage(),
+    routes: [
+      GoRoute(
+        path: NavigationRoutes._DETAIL_FAVORITE_ROUTE,
+        builder: (context, state) {
+          final Map<String, dynamic> params =
+              state.extra as Map<String, dynamic>;
+
+          return RecipesDetail(
+            recipeName: params['name'] ?? '',
+            people: params['people'] ?? '',
+            time: params['time'] ?? '',
+            ingredient: params['ingredient'] ?? '',
+          );
+        },
+      )
+    ],
+  )
+]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: NavigationRoutes.PROFILE_ROUTE,

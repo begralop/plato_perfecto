@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plato_perfecto/presentation/model/myrecipe.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecipesPage extends StatefulWidget {
   const RecipesPage({super.key});
@@ -10,69 +13,221 @@ class RecipesPage extends StatefulWidget {
 }
 
 class _RecipesPageState extends State<RecipesPage> {
+  late List<MyRecipe> myRecipes = [];
+
+  bool showApiRecipes = false;
+  bool isHelloButtonSelected = false;
+  bool isRecipesButtonSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Llamar a la función para cargar las recetas al inicializar la página
+    _loadRecipes();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Llamar a la función para cargar las recetas cada vez que las dependencias cambien
+    _loadRecipes();
+  }
+
+// Función para cargar las recetas desde Firestore
+  Future<void> _loadRecipes() async {
+    // Obtener el ID del usuario actual
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+
+    // Referencia a la colección 'users' y documentos asociados al usuario actual
+    CollectionReference userRecipesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('recipes');
+
+    // Obtener las recetas del usuario actual
+    QuerySnapshot<Map<String, dynamic>> recipesSnapshot =
+        await userRecipesCollection.get()
+            as QuerySnapshot<Map<String, dynamic>>;
+
+    // Mapear los documentos de Firestore a objetos MyRecipe
+    List<MyRecipe> recipes = recipesSnapshot.docs
+        .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+      Map<String, dynamic> data = doc.data()!;
+      return MyRecipe(
+        name: data['name'] ?? '',
+        people: data['people'] ?? '',
+        time: data['time'] ?? '',
+        ingredient: data['ingredient'] ?? '',
+      );
+    }).toList();
+
+    // Actualizar el estado con las recetas obtenidas
+    // Actualizar el estado con las recetas obtenidas
+    setState(() {
+      myRecipes = recipes;
+      showApiRecipes = false;
+      isHelloButtonSelected = false;
+      isRecipesButtonSelected = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 45, horizontal: 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Recetas',
-                  style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 110, 8, 211)),
-                ),
-              ],
-            ),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  mainAxisSpacing: 4,
-                  crossAxisSpacing: 4,
-                  crossAxisCount: 3,
-                ),
-                itemCount:
-                    30, // Cambia esto por la cantidad de recetas que tengas
-                itemBuilder: (context, index) {
-                  // Aquí deberías obtener la información de cada receta
-                  // Puedes crear una lista de objetos Recipe y obtener la información desde allí
-                  // Ejemplo: final recipe = recipes[index];
+        backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 45, horizontal: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recetas',
+                    style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 110, 8, 211)),
+                  ),
+                ],
+              ),
+                                    const SizedBox(height: 12),
 
-                  return Card(
-                    child: InkWell(
-                      onTap: () {
-                        /* context.go(Uri(
-                                path: NavigationRoutes.JOKE_DETAIL_ROUTE,
-                                queryParameters: {'category': category})
-                            .toString()); */
-                            context.go(NavigationRoutes.DETAIL_RECIPE_ROUTE);
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Puedes agregar la imagen de la receta aquí
-                          Image.asset("assets/images/pizza-carbonara.jpg"),
-                          const SizedBox(height: 8),
-                          Text('Carbonara',
-                              style: TextStyle(fontSize: 14)),
-                          // Puedes agregar más detalles aquí, como tiempo de preparación, etc.
-                        ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // Acción para el primer botón
+                      setState(() {
+                        showApiRecipes = true;
+                        isHelloButtonSelected = true;
+                        isRecipesButtonSelected = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      primary: isHelloButtonSelected
+                          ? Colors.deepPurple
+                          : Color.fromARGB(255, 245, 245, 245),
+                    ),
+                    child: Text(
+                      'Recetas API',
+                      style: TextStyle(
+                        color: isHelloButtonSelected
+                            ? Colors.white
+                            : Color.fromARGB(255, 110, 8, 211),
                       ),
                     ),
-                  );
-                },
+                  ),
+                  
+                      const SizedBox(width: 8),
+
+                  
+                  ElevatedButton(
+                    onPressed: () {
+                      // Acción para el segundo botón
+                      _loadRecipes(); // Cargar las recetas existentes
+                    },
+                    style: ElevatedButton.styleFrom(
+                      primary: isRecipesButtonSelected
+                          ? Colors.deepPurple
+                          : Color.fromARGB(255, 245, 245, 245),
+                    ),
+                    child: Text('Mis recetas',
+                        style: TextStyle(
+                          color: isRecipesButtonSelected
+                              ? Colors.white
+                              : Color.fromARGB(255, 110, 8, 211),
+                        )),
+                  ),
+
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    crossAxisCount: 3,
+                  ),
+                  itemCount: showApiRecipes ? 1 : myRecipes.length,
+                  itemBuilder: (context, index) {
+                    if (showApiRecipes) {
+                      return Card(
+                        child: Center(
+                          child: Text(
+                            'Hola Mundo',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      final MyRecipe recipe = myRecipes[index];
+
+                      return Card(
+                        child: InkWell(
+                          onTap: () {
+                            context.go(
+                              NavigationRoutes.DETAIL_RECIPE_ROUTE,
+                              extra: {
+                                'name': recipe.name,
+                                'people': recipe.people,
+                                'time': recipe.time,
+                                'ingredient': recipe.ingredient,
+                              },
+                            );
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Opacity(
+                                    opacity: 0.9,
+                                    child: Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: AssetImage(
+                                              "assets/images/pizza-carbonara.jpg"),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    recipe.name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                      backgroundColor:
+                                          Color.fromARGB(255, 110, 8, 211)
+                                              .withOpacity(0.6),
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 }

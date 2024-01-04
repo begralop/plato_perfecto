@@ -1,8 +1,11 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:plato_perfecto/presentation/model/myrecipe.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateRecipe extends StatefulWidget {
   const CreateRecipe({Key? key}) : super(key: key);
@@ -13,7 +16,8 @@ class CreateRecipe extends StatefulWidget {
 
 class _CreateRecipeState extends State<CreateRecipe> {
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
-  late String name, time, people;
+  late String name, time, people, ingredient;
+  String userId = FirebaseAuth.instance.currentUser!.uid;
 
   final TextEditingController _controllerName = TextEditingController();
   final TextEditingController _controllerImage = TextEditingController();
@@ -23,7 +27,16 @@ class _CreateRecipeState extends State<CreateRecipe> {
     TextEditingController()
   ];
 
+  final storage = FirebaseFirestore.instance;
+
   XFile? image; //this is the state variable
+  @override
+  void initState() {
+    super.initState();
+    userId = FirebaseAuth.instance.currentUser!.uid;
+    // ingredients = [];
+    //_ingredientControllers.add(TextEditingController());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +127,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: TextFormField(
                           textInputAction: TextInputAction.next,
+                          controller: _controllerName,
                           style: const TextStyle(fontSize: 14),
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
@@ -139,6 +153,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                         child: TextFormField(
                           textInputAction: TextInputAction.next,
                           style: const TextStyle(fontSize: 14),
+                          controller: _controllerPeople,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Comensales',
@@ -154,7 +169,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                     "Introduzca una cantidad de comensales."),
                           ]),
                           onSaved: (String? value) {
-                            name = value!;
+                            people = value!;
                           },
                         ),
                       ),
@@ -164,10 +179,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
                         child: TextFormField(
                           textInputAction: TextInputAction.next,
                           style: const TextStyle(fontSize: 14),
+                          controller: _controllerTime,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Tpo de elaboración (en minutos)',
-                            hintText: 'Introduzca un tiempo de elaboración...',
+                            hintText: 'Ejemplo: 105',
                             contentPadding: EdgeInsets.symmetric(
                               vertical: 6,
                               horizontal: 12,
@@ -179,11 +195,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                     "Introduzca un tiempo de elaboración."),
                           ]),
                           onSaved: (String? value) {
-                            name = value!;
+                            time = value!;
                           },
                         ),
                       ),
-                      _buildIngredientFields(),
+                      //  _buildIngredientFields(),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         style: ButtonStyle(
@@ -201,8 +217,27 @@ class _CreateRecipeState extends State<CreateRecipe> {
                         onPressed: () async {
                           if (formkey.currentState!.validate()) {
                             formkey.currentState!.save();
-                            // Aquí puedes acceder a name, image, time, people y _ingredientControllers
-                            // para procesar la información de la receta.
+
+                            // Create a map for the recipe data
+                            Map<String, dynamic> recipeData = {
+                              'name': name,
+                              'time': time,
+                              'people': people,
+                              'ingredients': "ingredients",
+                            };
+
+                            // Reference to the user's collection in Firestore
+                            CollectionReference userCollection =
+                                FirebaseFirestore.instance.collection('users');
+
+                            // Add the recipe data to the user's collection
+                            userCollection
+                                .doc(userId)
+                                .collection('recipes')
+                                .add(recipeData);
+
+                            // Navigate back to the previous screen
+                            Navigator.of(context).pop();
                           }
                         },
                         child: const Text(
@@ -243,8 +278,8 @@ class _CreateRecipeState extends State<CreateRecipe> {
                     style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Ingrediente y cantidad',
-                      hintText: 'Introduzca un ingrediente y su cantidad...',
+                      labelText: 'Ingrediente y cantidad ',
+                      hintText: 'Ejemplo: bacon 100gr',
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 6,
                         horizontal: 12,
@@ -256,7 +291,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                       EmailValidator(errorText: "Introduzca un ingrediente"),
                     ]),
                     onSaved: (String? value) {
-                      // Puedes guardar cada ingrediente aquí si es necesario
+                      ingredient = value!;
                     },
                   ),
                 ),
@@ -265,9 +300,10 @@ class _CreateRecipeState extends State<CreateRecipe> {
                 padding: const EdgeInsets.only(
                     right: 16.0), // Ajusta el valor según sea necesario
                 child: IconButton(
-                  padding: EdgeInsets.only(
-                      right: 8.0, top:16.0), // Ajusta el valor según sea necesario
-                  icon: Icon(Icons.cancel, color: Colors.red),
+                  padding: const EdgeInsets.only(
+                      right: 8.0,
+                      top: 16.0), // Ajusta el valor según sea necesario
+                  icon: const Icon(Icons.cancel, color: Colors.red),
                   onPressed: () {
                     setState(() {
                       _ingredientControllers.removeAt(i);
