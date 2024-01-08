@@ -1,13 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:plato_perfecto/di/app_modules.dart';
 import 'package:plato_perfecto/firebase_options.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
 
 Future<void> main() async {
+  AppModules().setup();
+
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -18,9 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
-      theme: ThemeData(
-        fontFamily: "LindenHill"
-      ),
+      theme: ThemeData(fontFamily: "LindenHill"),
     );
   }
 }

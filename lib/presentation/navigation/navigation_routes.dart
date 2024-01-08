@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plato_perfecto/presentation/pages/favorite/favorite.dart';
+import 'package:plato_perfecto/presentation/pages/favorite/favorite_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page_navbar.dart';
 import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
 import 'package:plato_perfecto/presentation/pages/profile/profile.dart';
-import 'package:plato_perfecto/presentation/pages/recipes/recipes.dart';
-import 'package:plato_perfecto/presentation/pages/recipes/recipes_detail.dart';
+import 'package:plato_perfecto/presentation/pages/recipes/recipes_page.dart';
+import 'package:plato_perfecto/presentation/pages/recipes/recipes_detail_page.dart';
 import 'package:plato_perfecto/presentation/pages/register/register_screen.dart';
 import 'package:plato_perfecto/presentation/pages/splash/splash_screen.dart';
 
@@ -72,8 +73,7 @@ final GoRouter router =
 
                   return RecipesDetail(
                     recipeName: params['name'] ?? '',
-                    image: params['image'] ??
-                        'assets/images/pizza-carbonara.jpg',
+                    image: params['image'] ?? NetworkImage(''),
                     people: params['people'] ?? '',
                     time: params['time'] ?? '',
                     ingredients: params['ingredients'] ?? ['1', '2'],

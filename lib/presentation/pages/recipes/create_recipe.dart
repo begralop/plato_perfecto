@@ -1,13 +1,10 @@
 import 'dart:io';
-import 'package:firebase_core/firebase_core.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plato_perfecto/presentation/model/myrecipe.dart';
+import 'package:plato_perfecto/model/myrecipe.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -321,8 +318,8 @@ class _CreateRecipeState extends State<CreateRecipe> {
                   style: const TextStyle(fontSize: 14),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Ingrediente y cantidad ',
-                    hintText: 'Ejemplo: bacon 100gr',
+                    labelText: 'Descripción o ingrediente + cantidad',
+                    hintText: 'Ejemplo: bacon 100gr o descripción',
                     contentPadding: EdgeInsets.symmetric(
                       vertical: 6,
                       horizontal: 12,
@@ -330,7 +327,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                   ),
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
-                      return "Introduzca un ingrediente.";
+                      return "Introduzca un ingrediente o descripción.";
                     }
                     return null;
                   },
