@@ -52,17 +52,19 @@ class _RecipesPageState extends State<RecipesPage> {
     // Mapear los documentos de Firestore a objetos MyRecipe
     List<MyRecipe> recipes = recipesSnapshot.docs
         .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-      Map<String, dynamic> data = doc.data()!;
+      Map<String, dynamic> data = doc.data();
       return MyRecipe(
-        name: data['name'] ?? '',
-        people: data['people'] ?? '',
-        time: data['time'] ?? '',
-        ingredient: data['ingredient'] ?? '',
+        name: data['name'] ?? 'Nombre receta',
+        people: data['people'] ?? 'Comensales',
+        time: data['time'] ?? 'Tiempo',
+        ingredients: (data['ingredients'] as List<dynamic>?)
+                ?.map((ingredient) => ingredient.toString())
+                .toList() ??
+            ['Ingrediente 1', 'Ingrediente 2', 'Ingrediente 3'],
+        image: data['image'] ?? 'assets/images/pizza-carbonara.jpg',
       );
     }).toList();
 
-    // Actualizar el estado con las recetas obtenidas
-    // Actualizar el estado con las recetas obtenidas
     setState(() {
       myRecipes = recipes;
       showApiRecipes = false;
@@ -76,7 +78,7 @@ class _RecipesPageState extends State<RecipesPage> {
     return Scaffold(
         backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
         body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 45, horizontal: 32),
+          padding: const EdgeInsets.symmetric(vertical: 55, horizontal: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -86,14 +88,13 @@ class _RecipesPageState extends State<RecipesPage> {
                   Text(
                     'Recetas',
                     style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 36,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 110, 8, 211)),
                   ),
                 ],
               ),
-                                    const SizedBox(height: 12),
-
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -114,16 +115,14 @@ class _RecipesPageState extends State<RecipesPage> {
                     child: Text(
                       'Recetas API',
                       style: TextStyle(
+                        fontSize: 18,
                         color: isHelloButtonSelected
                             ? Colors.white
                             : Color.fromARGB(255, 110, 8, 211),
                       ),
                     ),
                   ),
-                  
-                      const SizedBox(width: 8),
-
-                  
+                  const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
                       // Acción para el segundo botón
@@ -136,12 +135,12 @@ class _RecipesPageState extends State<RecipesPage> {
                     ),
                     child: Text('Mis recetas',
                         style: TextStyle(
+                          fontSize: 18,
                           color: isRecipesButtonSelected
                               ? Colors.white
                               : Color.fromARGB(255, 110, 8, 211),
                         )),
                   ),
-
                 ],
               ),
               Expanded(
@@ -167,6 +166,7 @@ class _RecipesPageState extends State<RecipesPage> {
                       );
                     } else {
                       final MyRecipe recipe = myRecipes[index];
+                      final img = Image.network(recipe.image);
 
                       return Card(
                         child: InkWell(
@@ -175,9 +175,13 @@ class _RecipesPageState extends State<RecipesPage> {
                               NavigationRoutes.DETAIL_RECIPE_ROUTE,
                               extra: {
                                 'name': recipe.name,
+                                'image': recipe.image.isNotEmpty
+                                              ? img.image
+                                              :
+                                                  'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
                                 'people': recipe.people,
                                 'time': recipe.time,
-                                'ingredient': recipe.ingredient,
+                                'ingredients': recipe.ingredients,
                               },
                             );
                           },
@@ -196,8 +200,10 @@ class _RecipesPageState extends State<RecipesPage> {
                                         borderRadius:
                                             BorderRadius.circular(8.0),
                                         image: DecorationImage(
-                                          image: AssetImage(
-                                              "assets/images/pizza-carbonara.jpg"),
+                                          image: recipe.image.isNotEmpty
+                                              ? img.image
+                                              : NetworkImage(
+                                                  'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg'),
                                           fit: BoxFit.cover,
                                         ),
                                       ),

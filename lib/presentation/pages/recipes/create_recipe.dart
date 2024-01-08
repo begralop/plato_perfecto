@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plato_perfecto/presentation/model/myrecipe.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateRecipe extends StatefulWidget {
@@ -27,9 +31,25 @@ class _CreateRecipeState extends State<CreateRecipe> {
     TextEditingController()
   ];
 
+  Future<void> storeIngredientData(
+      String recipeId, List<String> ingredients) async {
+    CollectionReference recipeIngredientsCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('recipes')
+        .doc(recipeId)
+        .collection('ingredients');
+
+    for (int i = 0; i < ingredients.length; i++) {
+      String ingredient = ingredients[i];
+      Map<String, dynamic> ingredientData = {'name': ingredient};
+      await recipeIngredientsCollection.add(ingredientData);
+    }
+  }
+
   final storage = FirebaseFirestore.instance;
 
-  XFile? image; //this is the state variable
+  XFile? imageUpload; //this is the state variable
   @override
   void initState() {
     super.initState();
@@ -91,32 +111,46 @@ class _CreateRecipeState extends State<CreateRecipe> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () async {
-                              if (image != null) {
+                              if (imageUpload != null) {
+                                // Upload image to Firebase Storage
+                                final storageRef = FirebaseStorage.instance
+                                    .ref()
+                                    .child(
+                                        'recipe_images/${DateTime.now().millisecondsSinceEpoch}');
+                                await storageRef
+                                    .putFile(File(imageUpload!.path));
+                                // Get the download URL of the uploaded image
+                                String image =
+                                    await storageRef.getDownloadURL();
+
                                 setState(() {
-                                  image = null;
+                                  imageUpload = null;
+
+                                  _controllerImage.text = image;
                                 });
                               } else {
                                 final ImagePicker _picker = ImagePicker();
                                 final img = await _picker.pickImage(
                                     source: ImageSource.gallery);
                                 setState(() {
-                                  image = img;
+                                  imageUpload = img;
                                 });
                               }
                             },
-                            label: Text(image != null
+                            label: Text(imageUpload != null
                                 ? 'Eliminar imagen'
                                 : 'Elige una imagen'),
-                            icon: Icon(
-                                image != null ? Icons.delete : Icons.image),
+                            icon: Icon(imageUpload != null
+                                ? Icons.delete
+                                : Icons.image),
                           ),
-                          if (image != null)
+                          if (imageUpload != null)
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Container(
                                 width: 100,
                                 height: 100,
-                                child: Image.file(File(image!.path)),
+                                child: Image.file(File(imageUpload!.path)),
                               ),
                             ),
                         ],
@@ -199,7 +233,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                           },
                         ),
                       ),
-                      //  _buildIngredientFields(),
+                      _buildIngredientFields(),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         style: ButtonStyle(
@@ -218,12 +252,18 @@ class _CreateRecipeState extends State<CreateRecipe> {
                           if (formkey.currentState!.validate()) {
                             formkey.currentState!.save();
 
+                            // Extract ingredients from controllers
+                            List<String> ingredients = _ingredientControllers
+                                .map((controller) => controller.text)
+                                .toList();
+
                             // Create a map for the recipe data
                             Map<String, dynamic> recipeData = {
                               'name': name,
                               'time': time,
                               'people': people,
-                              'ingredients': "ingredients",
+                              'ingredients': ingredients,
+                              'image': _controllerImage.text
                             };
 
                             // Reference to the user's collection in Firestore
@@ -231,10 +271,14 @@ class _CreateRecipeState extends State<CreateRecipe> {
                                 FirebaseFirestore.instance.collection('users');
 
                             // Add the recipe data to the user's collection
-                            userCollection
+                            DocumentReference recipeRef = await userCollection
                                 .doc(userId)
                                 .collection('recipes')
                                 .add(recipeData);
+                            String recipeId = recipeRef.id;
+
+                            // Call the function to store ingredient data
+                            await storeIngredientData(recipeId, ingredients);
 
                             // Navigate back to the previous screen
                             Navigator.of(context).pop();
@@ -265,54 +309,53 @@ class _CreateRecipeState extends State<CreateRecipe> {
     return Column(
       children: [
         for (int i = 0; i < _ingredientControllers.length; i++)
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 32.0, right: 0.0, top: 16, bottom: 0),
-                  child: TextFormField(
-                    controller: _ingredientControllers[i],
-                    textInputAction: TextInputAction.next,
-                    keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(fontSize: 14),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Ingrediente y cantidad ',
-                      hintText: 'Ejemplo: bacon 100gr',
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 12,
-                      ),
-                    ),
-                    validator: MultiValidator([
-                      RequiredValidator(
-                          errorText: "Introduzca un ingrediente."),
-                      EmailValidator(errorText: "Introduzca un ingrediente"),
-                    ]),
-                    onSaved: (String? value) {
-                      ingredient = value!;
-                    },
-                  ),
-                ),
-              ),
-              Padding(
+          Row(children: [
+            Expanded(
+              child: Padding(
                 padding: const EdgeInsets.only(
-                    right: 16.0), // Ajusta el valor según sea necesario
-                child: IconButton(
-                  padding: const EdgeInsets.only(
-                      right: 8.0,
-                      top: 16.0), // Ajusta el valor según sea necesario
-                  icon: const Icon(Icons.cancel, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _ingredientControllers.removeAt(i);
-                    });
+                    left: 32.0, right: 0.0, top: 16, bottom: 0),
+                child: TextFormField(
+                  controller: _ingredientControllers[i],
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Ingrediente y cantidad ',
+                    hintText: 'Ejemplo: bacon 100gr',
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 12,
+                    ),
+                  ),
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Introduzca un ingrediente.";
+                    }
+                    return null;
+                  },
+                  onSaved: (String? value) {
+                    ingredient = value!;
                   },
                 ),
               ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 16.0), // Ajusta el valor según sea necesario
+              child: IconButton(
+                padding: const EdgeInsets.only(
+                    right: 8.0,
+                    top: 16.0), // Ajusta el valor según sea necesario
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _ingredientControllers.removeAt(i);
+                  });
+                },
+              ),
+            ),
+          ]),
         Container(
           margin:
               const EdgeInsets.only(left: 18.0, right: 32.0, top: 4, bottom: 0),
@@ -322,7 +365,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
               _ingredientControllers.add(TextEditingController());
               setState(() {});
             },
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.add, color: Color.fromARGB(255, 110, 8, 211)),
                 SizedBox(width: 5),

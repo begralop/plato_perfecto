@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
       body:Padding(
-        padding: const EdgeInsets.symmetric(vertical: 45, horizontal: 32),
+        padding: const EdgeInsets.symmetric(vertical: 55, horizontal: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
         child: Text(
           "Hola, $displayName",
           style: const TextStyle(
-            fontSize: 28,
+            fontSize: 36,
             fontWeight: FontWeight.normal,
             color: Color.fromARGB(255, 110, 8, 211),
           ),
@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   "¡Qué buen día para cocinar!",
                   style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       color: Color.fromRGBO(129, 129, 129, 1.0)),
                 ),
               ],

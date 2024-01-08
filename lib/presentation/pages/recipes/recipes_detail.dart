@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 
 class RecipesDetail extends StatefulWidget {
   final String recipeName;
-  //final String imageUrl;
+  final String image;
   final String time;
   final String people;
-  final String ingredient;
+final List<String> ingredients;
 
   const RecipesDetail(
       {Key? key,
       required this.recipeName,
-//   required this.imageUrl,
+   required this.image,
       required this.people,
       required this.time,
-      required this.ingredient})
+      required this.ingredients})
       : super(key: key);
 
   @override
@@ -35,8 +35,7 @@ class _RecipesDetailState extends State<RecipesDetail> {
               height: MediaQuery.of(context).size.height * 0.4,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(
-                      'assets/images/pizza-carbonara.jpg'), // Reemplaza con la ruta de tu imagen
+                  image: NetworkImage(widget.image), // Reemplaza con la ruta de tu imagen
                   fit: BoxFit.cover,
                 ),
               ),
@@ -142,17 +141,17 @@ class _RecipesDetailState extends State<RecipesDetail> {
                     ),
                     SizedBox(height: 8),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          widget.ingredient,
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                        ),
-                      ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: widget.ingredients
+                          .map((ingredient) => Text(
+                                ingredient,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ))
+                          .toList(),
                     ),
                     SizedBox(height: 8),
 
