@@ -37,6 +37,7 @@ PageRouteBuilder _customPageRouteBuilder() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: widget.navigationShell,
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

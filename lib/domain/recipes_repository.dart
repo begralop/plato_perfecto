@@ -1,8 +1,7 @@
 import 'package:plato_perfecto/model/recipe.dart';
+import 'package:plato_perfecto/model/recipe_category_model.dart';
 
 abstract class RecipesRepository {
   Future<Recipe> getRandomRecipe();
-  //Future<Recipe> getRecipeByName(String name);
- // Future<Recipe> getRecipeByCategory(String category);
-
+  Future<List<RecipeCategoryModel>> getRecipeByCategory(String category);
 }

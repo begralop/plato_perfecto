@@ -3,5 +3,6 @@ class NetworkConstants {
 
   static const RECIPES_RANDOM_PATH = "$BASE_URL/random.php";
   static const CATEGORIES_PATH = "$BASE_URL/categories.php";
+  static const RECIPE_CATEGORIES_PATH = "$BASE_URL/filter.php";
 
 }

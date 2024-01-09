@@ -1,3 +1,4 @@
+import 'package:plato_perfecto/data/categories/remote/model/category_remote_model.dart';
 import 'package:plato_perfecto/data/recipe/remote/model/recipe_remote_model.dart';
 import 'package:plato_perfecto/data/remote/error/remote_error_mapper.dart';
 import 'package:plato_perfecto/data/remote/network_client.dart';
@@ -14,15 +15,15 @@ class RecipeRemoteImpl {
       final response =
           await _networkClient.dio.get(NetworkConstants.RECIPES_RANDOM_PATH);
 
-      final Map<String, dynamic> responseData = response.data as Map<String, dynamic>;
+      final Map<String, dynamic> responseData =
+          response.data as Map<String, dynamic>;
       final List<dynamic> mealsList = responseData["meals"];
 
       if (mealsList.isNotEmpty) {
-        // Obtén la primera receta de la lista (supongo que solo necesitas una receta aleatoria).
         final Map<String, dynamic> randomRecipeData = mealsList[0];
 
-        // Convierte los datos de la receta a una instancia de RecipeRemoteModel.
-        final RecipeRemoteModel randomRecipe = RecipeRemoteModel.fromJson(randomRecipeData);
+        final RecipeRemoteModel randomRecipe =
+            RecipeRemoteModel.fromJson(randomRecipeData);
 
         return randomRecipe;
       } else {
@@ -30,6 +31,23 @@ class RecipeRemoteImpl {
         throw Exception("La lista de recetas está vacía");
       }
     } catch (e) {
+      throw RemoteErrorMapper.getException(e);
+    }
+  }
+
+  Future<List<RecipeCategoryRemoteModel>> getRecipeByCategory(String category) async {
+    try {
+      final response = await _networkClient.dio.get(
+          NetworkConstants.RECIPE_CATEGORIES_PATH,
+          queryParameters: {"c": category});
+      final Map<String, dynamic> responseData =
+          response.data as Map<String, dynamic>;
+      final List<dynamic> recipesList = responseData["meals"];
+
+      return recipesList.map((e) => RecipeCategoryRemoteModel.fromJson(e)).toList();
+    } catch (e) {
+      print("Error during API request: $e");
+
       throw RemoteErrorMapper.getException(e);
     }
   }
