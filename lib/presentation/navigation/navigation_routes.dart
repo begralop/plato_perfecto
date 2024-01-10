@@ -1,7 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plato_perfecto/presentation/pages/randomrecipe/random_recipe_page.dart';
+import 'package:plato_perfecto/presentation/pages/favoriterecipe/favorite_recipe_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page_navbar.dart';
 import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
@@ -101,7 +100,7 @@ final GoRouter router =
         StatefulShellBranch(routes: [
           GoRoute(
             path: NavigationRoutes.FAVOURITE_ROUTE,
-            builder: (context, state) => RandomRecipePage(),
+            builder: (context, state) => FavoriteRecipePage(),
             routes: [
               GoRoute(
                 path: NavigationRoutes._DETAIL_FAVORITE_ROUTE,

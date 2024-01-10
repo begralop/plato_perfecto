@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
-import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plato_perfecto/presentation/navigation/navigation_routes.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -22,97 +19,81 @@ class _RegisterPageState extends State<RegisterPage> {
   String? errorMessageLogin = '';
   bool isLogin = false;
   bool passwordVisible = true;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
   FirebaseAuth auth = FirebaseAuth.instance;
 
   late String email, password, name;
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
-Future<UserCredential> createUserWithEmailAndPassword(
-  String email,
-  String password,
-  String displayName,
-) async {
-  try {
-    // Crear el usuario en Firebase Auth
-    UserCredential userCredential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password);
+  Future<UserCredential> createUserWithEmailAndPassword(
+    String email,
+    String password,
+    String displayName,
+  ) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-    // Actualizar el nombre de usuario
-    await userCredential.user?.updateDisplayName(displayName);
+      await userCredential.user?.updateDisplayName(displayName);
 
-    // Recargar el usuario para obtener la información más reciente.
-    await userCredential.user?.reload();
+      await userCredential.user?.reload();
 
-    // Crear un documento en la colección 'users' para el nuevo usuario
-    await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-      'email': email,
-      'displayName': displayName,
-      // Puedes agregar más campos según tus necesidades
-    });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'email': email,
+        'displayName': displayName,
+      });
 
-    return userCredential;
-  } catch (e) {
-    // Reenviar la excepción para que pueda ser manejada en la capa superior
-    rethrow;
-  }
-}
-
-Future<User?> signInWithGoogle() async {
-  // Iniciar el flujo de autenticación con Google
-  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-  // Obtener los detalles de autenticación de la solicitud
-  final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
-
-  if (googleUser != null) {
-    // Autenticar con Firebase usando las credenciales de Google
-    UserCredential userCredential =
-        await FirebaseAuth.instance.signInWithCredential(
-      GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
-      ),
-    );
-
-    // Crear un documento en la colección 'users' para el nuevo usuario (si aún no existe)
-    await _createUserDocument(userCredential.user!);
-
-    // Establecer el estado de login
-    setState(() {
-      isLogin = true;
-    });
-
-    // Obtener el objeto User del UserCredential
-    User? user = userCredential.user;
-
-    // Navegar a la ruta de inicio
-    context.go(NavigationRoutes.HOME_ROUTE);
-
-    return user;
+      return userCredential;
+    } catch (e) {
+      rethrow;
+    }
   }
 
-  // Si no se pudo autenticar, devolver null
-  return null;
-}
+  Future<User?> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-Future<void> _createUserDocument(User user) async {
-  // Verificar si el usuario ya existe en la colección 'users'
-  DocumentSnapshot userDoc =
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
 
-  // Crear el documento solo si el usuario no existe
-  if (!userDoc.exists) {
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'email': user.email,
-      'displayName': user.displayName,
-      // Puedes agregar más campos según tus necesidades
-    });
+    if (googleUser != null) {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(
+        GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
+        ),
+      );
+
+      await _createUserDocument(userCredential.user!);
+
+      setState(() {
+        isLogin = true;
+      });
+
+      User? user = userCredential.user;
+
+      context.go(NavigationRoutes.HOME_ROUTE);
+      return user;
+    }
+    return null;
   }
-}
+
+  Future<void> _createUserDocument(User user) async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!userDoc.exists) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'email': user.email,
+        'displayName': user.displayName,
+      });
+    }
+  }
 
   String? validatePassword(String value) {
     if (value.isEmpty) {
@@ -235,7 +216,6 @@ Future<void> _createUserDocument(User user) async {
                             onSaved: (String? value) {
                               password = value!;
                             },
-                            //validatePassword,        //Function to check validation
                           ),
                         ),
                         const SizedBox(

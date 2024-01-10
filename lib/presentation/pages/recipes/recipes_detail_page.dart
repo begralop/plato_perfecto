@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RecipesDetail extends StatefulWidget {
   final String recipeName;
   final NetworkImage image;
   final String time;
   final String people;
-  final List<String> ingredients;
+  final List<String?> ingredients;
 
   const RecipesDetail({
     Key? key,
@@ -21,21 +23,63 @@ class RecipesDetail extends StatefulWidget {
 }
 
 class _RecipesDetailState extends State<RecipesDetail> {
+  bool isFavorite = false;
+  late String userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+    checkFavoriteStatus();
+  }
+
+  Future<void> _loadUserId() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    User? user = auth.currentUser;
+    setState(() {
+      userId = user?.uid ?? '';
+    });
+  }
+
+  Future<void> checkFavoriteStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isFavorite = prefs.getBool('$userId-${widget.recipeName}') ?? false;
+    });
+  }
+
+  Future<void> toggleFavoriteStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      isFavorite = !isFavorite;
+      prefs.setBool('$userId-${widget.recipeName}', isFavorite);
+      List<String> storedRecipes = prefs.getStringList('$userId-myRecipes') ?? [];
+
+      if (isFavorite) {
+        storedRecipes.add(widget.recipeName);
+      } else {
+        storedRecipes.remove(widget.recipeName);
+      }
+
+      prefs.setStringList('$userId-myRecipes', storedRecipes);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
-      body: Container(
+      backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
+      body: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: Stack(
           children: [
-            // Foto que ocupa todo el ancho y 1/4 de la altura
             Container(
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.4,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: widget.image, // Reemplaza con la ruta de tu imagen
+                  image: widget.image,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -44,23 +88,22 @@ class _RecipesDetailState extends State<RecipesDetail> {
               top: 30,
               left: 10,
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
                 ),
                 child: IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.arrow_back,
                     size: 25,
                   ),
                   color: Colors.black,
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
                   },
                 ),
               ),
             ),
-            // Contenedor con borde circular arriba y que ocupa el espacio restante
             Positioned(
               bottom: 0,
               left: 0,
@@ -79,7 +122,6 @@ class _RecipesDetailState extends State<RecipesDetail> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // El contenido debajo de la imagen
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -88,59 +130,64 @@ class _RecipesDetailState extends State<RecipesDetail> {
                               widget.recipeName,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Color.fromARGB(255, 110, 8, 211),
                               ),
                             ),
                           ),
-                          
+                          IconButton(
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: 40,
+                              color: const Color.fromARGB(255, 110, 8, 211),
+                            ),
+                            onPressed: toggleFavoriteStatus,
+                          )
                         ],
                       ),
-                      SizedBox(height: 8),
-
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(Icons.timer,
+                          const Icon(Icons.timer,
                               color: Color.fromRGBO(0, 0, 0, 0.667)),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             "${widget.time} min",
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 12,
                                 color: Color.fromRGBO(0, 0, 0, 0.667)),
                           ),
-                          SizedBox(width: 16),
-                          Icon(Icons.person,
+                          const SizedBox(width: 16),
+                          const Icon(Icons.person,
                               color: Color.fromRGBO(0, 0, 0, 0.667)),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             "${widget.people} comensales",
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 12,
                                 color: Color.fromRGBO(0, 0, 0, 0.667)),
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
-
-                      Text(
+                      const SizedBox(height: 16),
+                      const Text(
                         'Ingredientes y descripción',
                         style: TextStyle(
                             fontSize: 18,
                             color: Color.fromARGB(255, 110, 8, 211)),
                       ),
-                      SizedBox(height: 8),
-
-                      // Utiliza un ListView para hacer la lista de ingredientes desplazable
+                      const SizedBox(height: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: widget.ingredients.map((ingredient) {
                           return Text(
-                            ingredient,
-                            style: TextStyle(
+                            ingredient!,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
@@ -148,10 +195,6 @@ class _RecipesDetailState extends State<RecipesDetail> {
                           );
                         }).toList(),
                       ),
-
-                      SizedBox(height: 16),
-
-                      // Puedes agregar más widgets según tus necesidades
                     ],
                   ),
                 ),

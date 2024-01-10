@@ -12,18 +12,18 @@ class HomePageNavbar extends StatefulWidget {
 }
 
 class _HomePageNavbarState extends State<HomePageNavbar> {
-
-PageRouteBuilder _customPageRouteBuilder() {
+  PageRouteBuilder _customPageRouteBuilder() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) {
         return CreateRecipe();
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0); 
+        const begin = Offset(0.0, 1.0);
         const end = Offset.zero;
         const curve = Curves.easeInOut;
 
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
         var offsetAnimation = animation.drive(tween);
 
@@ -37,7 +37,7 @@ PageRouteBuilder _customPageRouteBuilder() {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: widget.navigationShell,
-      backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         margin: const EdgeInsets.only(top: 10),
@@ -60,10 +60,9 @@ PageRouteBuilder _customPageRouteBuilder() {
               borderRadius: BorderRadius.circular(100),
               side: const BorderSide(width: 10, color: Colors.white)),
           child: const Icon(
-            Icons.add, // Cambia a tu icono deseado
+            Icons.add,
             size: 32,
-            color: Colors
-                .white, // Ajusta el tamaño del icono según tus necesidades
+            color: Colors.white,
           ),
         ),
       ),
@@ -108,9 +107,9 @@ PageRouteBuilder _customPageRouteBuilder() {
                   label: "Mis recetas",
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.question_mark_outlined),
-                  selectedIcon: Icon(Icons.question_mark),
-                  label: "Receta random",
+                  icon: Icon(Icons.favorite_border),
+                  selectedIcon: Icon(Icons.favorite),
+                  label: "Favoritos",
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.person_outline),

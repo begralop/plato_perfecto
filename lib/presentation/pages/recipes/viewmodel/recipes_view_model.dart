@@ -8,31 +8,43 @@ import 'package:plato_perfecto/presentation/model/resource_state.dart';
 class RecipeViewModel extends BaseViewModel {
   final RecipesRepository _recipesRepository;
 
-  final StreamController<ResourceState<Recipe>> getRandomRecipeState = StreamController();
-final StreamController<ResourceState<List<RecipeCategoryModel>>> getRecipeListState = StreamController.broadcast();
+  final StreamController<ResourceState<Recipe>> getRandomRecipeState =
+      StreamController();
+  final StreamController<ResourceState<List<RecipeCategoryModel>>>
+      getRecipeListState = StreamController.broadcast();
+  final StreamController<ResourceState<Recipe>> getRecipeByNameState =
+      StreamController.broadcast();
 
-
-  RecipeViewModel({required RecipesRepository recipesRepository}) : _recipesRepository = recipesRepository;
+  RecipeViewModel({required RecipesRepository recipesRepository})
+      : _recipesRepository = recipesRepository;
 
   fetchRandomRecipe() {
     getRandomRecipeState.add(ResourceState.loading());
     _recipesRepository
-      .getRandomRecipe()
-      .then(
-        (value) => getRandomRecipeState.add(ResourceState.success(value)))
-      .catchError(
-        (error) => getRandomRecipeState.add(ResourceState.error(error)));
+        .getRandomRecipe()
+        .then((value) => getRandomRecipeState.add(ResourceState.success(value)))
+        .catchError(
+            (error) => getRandomRecipeState.add(ResourceState.error(error)));
   }
 
-  fetchRecipeByCategory(String category){
+  fetchRecipeByCategory(String category) {
     getRecipeListState.add(ResourceState.loading());
     _recipesRepository
-      .getRecipeByCategory(category)
-      .then(
-        (value) => getRecipeListState.add(ResourceState.success(value)))
-      .catchError(
-        (error) => getRecipeListState.add(ResourceState.error(error)));
+        .getRecipeByCategory(category)
+        .then((value) => getRecipeListState.add(ResourceState.success(value)))
+        .catchError(
+            (error) => getRecipeListState.add(ResourceState.error(error)));
   }
+
+  fetchRecipebyName(String name) {
+    getRecipeByNameState.add(ResourceState.loading());
+    _recipesRepository
+        .getRecipeByName(name)
+        .then((value) => getRecipeByNameState.add(ResourceState.success(value)))
+        .catchError(
+            (error) => getRecipeByNameState.add(ResourceState.error(error)));
+  }
+
   @override
   void dispose() {
     getRandomRecipeState.close();

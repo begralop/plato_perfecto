@@ -27,6 +27,7 @@ class _RecipesPageState extends State<RecipesPage> {
   bool showApiRecipes = false;
   bool isApiButtonSelected = true;
   bool isRecipesButtonSelected = false;
+  bool recipesLoad = false;
 
   @override
   void initState() {
@@ -39,6 +40,8 @@ class _RecipesPageState extends State<RecipesPage> {
           break;
         case Status.SUCCESS:
           LoadingView.hide();
+          ingredientesList.clear();
+
           setState(() {
             _recipe = state.data!;
           });
@@ -62,27 +65,21 @@ class _RecipesPageState extends State<RecipesPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Llamar a la función para cargar las recetas cada vez que las dependencias cambien
     _loadRecipes();
   }
 
-// Función para cargar las recetas desde Firestore
   Future<void> _loadRecipes() async {
-    // Obtener el ID del usuario actual
     String userId = FirebaseAuth.instance.currentUser!.uid;
 
-    // Referencia a la colección 'users' y documentos asociados al usuario actual
     CollectionReference userRecipesCollection = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
         .collection('recipes');
 
-    // Obtener las recetas del usuario actual
     QuerySnapshot<Map<String, dynamic>> recipesSnapshot =
         await userRecipesCollection.get()
             as QuerySnapshot<Map<String, dynamic>>;
 
-    // Mapear los documentos de Firestore a objetos MyRecipe
     List<MyRecipe> recipes = recipesSnapshot.docs
         .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
       Map<String, dynamic> data = doc.data();
@@ -108,7 +105,7 @@ class _RecipesPageState extends State<RecipesPage> {
     return Scaffold(
         backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
         body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 55, horizontal: 26),
+          padding: const EdgeInsets.only(top: 36.0, left: 32.0, right: 32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -124,16 +121,126 @@ class _RecipesPageState extends State<RecipesPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        showApiRecipes = false;
+                        isApiButtonSelected = true;
+                        isRecipesButtonSelected = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isApiButtonSelected
+                          ? Colors.deepPurple
+                          : const Color.fromARGB(255, 245, 245, 245),
+                    ),
+                    child: Text(
+                      'Mis recetas',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: isApiButtonSelected
+                            ? Colors.white
+                            : const Color.fromARGB(255, 110, 8, 211),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        showApiRecipes = true;
+                        isApiButtonSelected = false;
+                        isRecipesButtonSelected = true;
+                      });
+                      _loadRecipes();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isRecipesButtonSelected
+                          ? Colors.deepPurple
+                          : const Color.fromARGB(255, 245, 245, 245),
+                    ),
+                    child: Text('Receta random',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: isRecipesButtonSelected
+                              ? Colors.white
+                              : const Color.fromARGB(255, 110, 8, 211),
+                        )),
+                  ),
+                ],
+              ),
               Expanded(
                 child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      mainAxisSpacing: 4,
-                      crossAxisSpacing: 4,
-                      crossAxisCount: 3,
-                    ),
-                    itemCount: showApiRecipes ? 1 : myRecipes.length,
-                    itemBuilder: (context, index) {
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    crossAxisCount: 3,
+                  ),
+                  itemCount: showApiRecipes ? 1 : myRecipes.length,
+                  itemBuilder: (context, index) {
+                    if (showApiRecipes) {
+                      return Card(
+                        child: InkWell(
+                          onTap: () {
+                            context.go(
+                              NavigationRoutes.DETAIL_RECIPE_ROUTE,
+                              extra: {
+                                'name': _recipe?.strMeal,
+                                'image': _recipe?.strMealThumb.isNotEmpty
+                                    ? NetworkImage(_recipe!.strMealThumb)
+                                    : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
+                                'people': "undefined",
+                                'time': "time",
+                                'ingredients': ingredientesList,
+                              },
+                            );
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Opacity(
+                                    opacity: 0.9,
+                                    child: Container(
+                                      width: 80,
+                                      height: 39,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: _recipe?.strSource.isNotEmpty
+                                              ? NetworkImage(
+                                                  _recipe!.strMealThumb)
+                                              : NetworkImage(
+                                                  'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg'),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(6.0),
+                                child: Text(_recipe!.strMeal,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
                       final MyRecipe recipe = myRecipes[index];
                       final img = Image.network(recipe.image);
 
@@ -164,7 +271,7 @@ class _RecipesPageState extends State<RecipesPage> {
                                     opacity: 0.9,
                                     child: Container(
                                       width: 80,
-                                      height: 59,
+                                      height: 39,
                                       decoration: BoxDecoration(
                                         borderRadius:
                                             BorderRadius.circular(8.0),
@@ -182,11 +289,9 @@ class _RecipesPageState extends State<RecipesPage> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(6.0),
-                                child: Text(
-                                    // Puedes personalizar el texto según tus necesidades
-                                    recipe.name,
+                                child: Text(recipe.name,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
@@ -196,7 +301,9 @@ class _RecipesPageState extends State<RecipesPage> {
                           ),
                         ),
                       );
-                    }),
+                    }
+                  },
+                ),
               ),
             ],
           ),

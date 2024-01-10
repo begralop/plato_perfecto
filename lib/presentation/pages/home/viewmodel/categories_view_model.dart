@@ -7,19 +7,20 @@ import 'package:plato_perfecto/presentation/model/resource_state.dart';
 class CategoriesViewModel extends BaseViewModel {
   final CategoryRepository _categoriesRepository;
 
-  final StreamController<ResourceState<List<Category>>> getCategoriesState = StreamController();
-  
-  CategoriesViewModel({required CategoryRepository categoriesRepository}) : _categoriesRepository = categoriesRepository;
+  final StreamController<ResourceState<List<Category>>> getCategoriesState =
+      StreamController();
+
+  CategoriesViewModel({required CategoryRepository categoriesRepository})
+      : _categoriesRepository = categoriesRepository;
 
   fetchCategoriesList() {
     getCategoriesState.add(ResourceState.loading());
 
     _categoriesRepository
-      .getCategories()
-      .then(
-        (value) => getCategoriesState.add(ResourceState.success(value)))
-      .catchError(
-        (error) => getCategoriesState.add(ResourceState.error(error)));
+        .getCategories()
+        .then((value) => getCategoriesState.add(ResourceState.success(value)))
+        .catchError(
+            (error) => getCategoriesState.add(ResourceState.error(error)));
   }
 
   @override

@@ -28,12 +28,11 @@ class _HomePageState extends State<HomePage> {
   final RecipeViewModel _recipeViewModel = inject<RecipeViewModel>();
   List<Category> _categoriesList = [];
   List<RecipeCategoryModel> _recipesList = [];
-
+  Recipe? _searchedRecipe;
   late TextEditingController _searchController;
-  String selectedCategoryName =
-      ""; // Variable para almacenar el nombre de la categoría seleccionada
+  String selectedCategoryName = "";
   int selectedCategoryIndex = -1;
-
+  List<String?> ingredientesList = [];
   @override
   void initState() {
     super.initState();
@@ -59,7 +58,6 @@ class _HomePageState extends State<HomePage> {
           break;
       }
     });
-
     _categoriesViewModel.fetchCategoriesList();
   }
 
@@ -81,10 +79,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
-      
+      resizeToAvoidBottomInset: false,
+      backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 26),
+        padding: const EdgeInsets.only(top: 36.0, left: 32.0, right: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -126,30 +124,82 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: TextField(
                       controller: _searchController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: "Buscar receta...",
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: -8.0),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: -8.0),
                       ),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.search,
                     color: Color.fromARGB(255, 110, 8, 211),
                   ),
-                  onPressed: () {
-                    // Aquí puedes realizar la acción de búsqueda
-                    // usando el contenido de _searchController.text
+                  onPressed: () async {
+                    String searchTerm = _searchController.text.trim();
+                    if (searchTerm.isNotEmpty) {
+                      LoadingView.show(context);
+                      await _recipeViewModel.fetchRecipebyName(searchTerm);
+
+                      _recipeViewModel.getRecipeByNameState.stream
+                          .listen((state) {
+                        switch (state.status) {
+                          case Status.LOADING:
+                            LoadingView.show(context);
+                            break;
+                          case Status.SUCCESS:
+                            LoadingView.hide();
+
+                            ingredientesList.clear();
+                            setState(() {
+                              _searchedRecipe = state.data!;
+                            });
+                            ingredientesList
+                                .add(_searchedRecipe?.strIngredient1);
+                            ingredientesList
+                                .add(_searchedRecipe?.strIngredient2);
+                            ingredientesList
+                                .add(_searchedRecipe?.strIngredient3);
+                            ingredientesList
+                                .add(_searchedRecipe?.strInstructions);
+
+                            context.go(
+                              NavigationRoutes.DETAIL_HOME_ROUTE,
+                              extra: {
+                                'name': _searchedRecipe?.strMeal,
+                                'image': _searchedRecipe
+                                        ?.strMealThumb.isNotEmpty
+                                    ? NetworkImage(
+                                        _searchedRecipe?.strMealThumb)
+                                    : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
+                                'people': "undefined",
+                                'time': "time",
+                                'ingredients': ingredientesList,
+                              },
+                            );
+
+                            break;
+                          case Status.ERROR:
+                            LoadingView.hide();
+                            ErrorView.show(context, state.exception!.toString(),
+                                () {
+                              _recipeViewModel.fetchRecipebyName(searchTerm);
+                            });
+                            break;
+                        }
+                      });
+                    }
                   },
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               "Categorías",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.normal,
                 color: Color.fromARGB(255, 110, 8, 211),
@@ -163,18 +213,16 @@ class _HomePageState extends State<HomePage> {
                   final category = entry.value;
                   return Column(
                     children: [
-                      Container(
+                      SizedBox(
                         width: 120.0,
                         height: 80.0,
                         child: Padding(
                           padding: const EdgeInsets.all(4.0),
                           child: ElevatedButton(
                             onPressed: () {
-                              // Acción al hacer clic en el botón de la categoría
                               setState(() {
                                 selectedCategoryIndex = index;
-                                selectedCategoryName =
-                                    category.strCategory ?? "";
+                                selectedCategoryName = category.strCategory;
 
                                 _recipeViewModel.getRecipeListState.stream
                                     .listen((state) {
@@ -207,30 +255,28 @@ class _HomePageState extends State<HomePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
-                              primary: selectedCategoryIndex == index
-                                  ? Color.fromARGB(255, 110, 8, 211)
-                                      .withOpacity(
-                                          0.2) // Morado si está seleccionado
-                                  : Colors
-                                      .white, // Color normal si no está seleccionado
+                              backgroundColor: selectedCategoryIndex == index
+                                  ? const Color.fromARGB(255, 110, 8, 211)
+                                      .withOpacity(0.2)
+                                  : Colors.white,
                             ),
                             child: Ink(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8.0),
                                 image: DecorationImage(
                                   fit: BoxFit.cover,
-                                  image: NetworkImage(
-                                      category.strCategoryThumb ?? ""),
+                                  image:
+                                      NetworkImage(category.strCategoryThumb),
                                 ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 2), // Espacio entre el botón y el texto
+                      const SizedBox(height: 2),
                       Text(
-                        category.strCategory ?? "Sin categoría",
-                        style: TextStyle(
+                        category.strCategory,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black,
                         ),
@@ -243,21 +289,20 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Text(
+                const Text(
                   "Mostrando: ",
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.normal,
-                    color: Colors.black, // Color negro para "Mostrando"
+                    color: Colors.black,
                   ),
                 ),
                 Text(
                   selectedCategoryName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.normal,
-                    color: Color.fromARGB(255, 110, 8,
-                        211), // Color morado para la categoría seleccionada
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 110, 8, 211),
                   ),
                 ),
               ],
@@ -277,19 +322,60 @@ class _HomePageState extends State<HomePage> {
                         final recipe = _recipesList[index];
                         return Card(
                           child: InkWell(
-                            onTap: () {
-                              context.go(
-                                NavigationRoutes.DETAIL_RECIPE_ROUTE,
-                                extra: {
-                                  'name': recipe.strMeal,
-                                  'image': recipe.strMealThumb.isNotEmpty
-                                      ? NetworkImage(recipe!.strMealThumb)
-                                      : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
-                                  'people': "undefined",
-                                  'time': "time",
-                                  'ingredients': [recipe.idMeal],
-                                },
-                              );
+                            onTap: () async {
+                              LoadingView.show(context);
+                              await _recipeViewModel
+                                  .fetchRecipebyName(recipe.strMeal);
+
+                              _recipeViewModel.getRecipeByNameState.stream
+                                  .listen((state) {
+                                switch (state.status) {
+                                  case Status.LOADING:
+                                    LoadingView.show(context);
+                                    break;
+                                  case Status.SUCCESS:
+                                    LoadingView.hide();
+
+                                    ingredientesList.clear();
+                                    setState(() {
+                                      _searchedRecipe = state.data!;
+                                    });
+                                    ingredientesList
+                                        .add(_searchedRecipe?.strIngredient1);
+                                    ingredientesList
+                                        .add(_searchedRecipe?.strIngredient2);
+                                    ingredientesList
+                                        .add(_searchedRecipe?.strIngredient3);
+                                    ingredientesList
+                                        .add(_searchedRecipe?.strInstructions);
+
+                                    context.go(
+                                      NavigationRoutes.DETAIL_HOME_ROUTE,
+                                      extra: {
+                                        'name': _searchedRecipe?.strMeal,
+                                        'image': _searchedRecipe
+                                                ?.strMealThumb.isNotEmpty
+                                            ? NetworkImage(
+                                                _searchedRecipe?.strMealThumb)
+                                            : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
+                                        'people': "undefined",
+                                        'time': "time",
+                                        'ingredients': ingredientesList,
+                                      },
+                                    );
+
+                                    break;
+                                  case Status.ERROR:
+                                    LoadingView.hide();
+                                    ErrorView.show(
+                                        context, state.exception!.toString(),
+                                        () {
+                                      _recipeViewModel
+                                          .fetchRecipebyName(recipe.strMeal);
+                                    });
+                                    break;
+                                }
+                              });
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -309,8 +395,8 @@ class _HomePageState extends State<HomePage> {
                                             image: recipe
                                                     .strMealThumb.isNotEmpty
                                                 ? NetworkImage(
-                                                    recipe!.strMealThumb)
-                                                : NetworkImage(
+                                                    recipe.strMealThumb)
+                                                : const NetworkImage(
                                                     'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg'),
                                             fit: BoxFit.cover,
                                           ),
@@ -321,11 +407,9 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(6.0),
-                                  child: Text(
-                                      // Puedes personalizar el texto según tus necesidades
-                                      recipe.strMeal,
+                                  child: Text(recipe.strMeal,
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold),
                                       overflow: TextOverflow.ellipsis,
@@ -339,12 +423,11 @@ class _HomePageState extends State<HomePage> {
                     }),
               )
             else
-              Text(
+              const Text(
                 "Seleccione una categoría para mostrar recetas.",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color.fromRGBO(129, 129, 129,
-                      1.0), // Puedes ajustar el color según tu preferencia
+                  color: Color.fromRGBO(129, 129, 129, 1.0),
                 ),
               ),
           ],

@@ -4,8 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plato_perfecto/model/myrecipe.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateRecipe extends StatefulWidget {
@@ -46,13 +44,11 @@ class _CreateRecipeState extends State<CreateRecipe> {
 
   final storage = FirebaseFirestore.instance;
 
-  XFile? imageUpload; //this is the state variable
+  XFile? imageUpload;
   @override
   void initState() {
     super.initState();
     userId = FirebaseAuth.instance.currentUser!.uid;
-    // ingredients = [];
-    //_ingredientControllers.add(TextEditingController());
   }
 
   @override
@@ -109,14 +105,12 @@ class _CreateRecipeState extends State<CreateRecipe> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               if (imageUpload != null) {
-                                // Upload image to Firebase Storage
                                 final storageRef = FirebaseStorage.instance
                                     .ref()
                                     .child(
                                         'recipe_images/${DateTime.now().millisecondsSinceEpoch}');
                                 await storageRef
                                     .putFile(File(imageUpload!.path));
-                                // Get the download URL of the uploaded image
                                 String image =
                                     await storageRef.getDownloadURL();
 
@@ -144,7 +138,7 @@ class _CreateRecipeState extends State<CreateRecipe> {
                           if (imageUpload != null)
                             Padding(
                               padding: const EdgeInsets.only(left: 8.0),
-                              child: Container(
+                              child: SizedBox(
                                 width: 100,
                                 height: 100,
                                 child: Image.file(File(imageUpload!.path)),
@@ -249,12 +243,10 @@ class _CreateRecipeState extends State<CreateRecipe> {
                           if (formkey.currentState!.validate()) {
                             formkey.currentState!.save();
 
-                            // Extract ingredients from controllers
                             List<String> ingredients = _ingredientControllers
                                 .map((controller) => controller.text)
                                 .toList();
 
-                            // Create a map for the recipe data
                             Map<String, dynamic> recipeData = {
                               'name': name,
                               'time': time,
@@ -263,21 +255,16 @@ class _CreateRecipeState extends State<CreateRecipe> {
                               'image': _controllerImage.text
                             };
 
-                            // Reference to the user's collection in Firestore
                             CollectionReference userCollection =
                                 FirebaseFirestore.instance.collection('users');
 
-                            // Add the recipe data to the user's collection
                             DocumentReference recipeRef = await userCollection
                                 .doc(userId)
                                 .collection('recipes')
                                 .add(recipeData);
                             String recipeId = recipeRef.id;
 
-                            // Call the function to store ingredient data
                             await storeIngredientData(recipeId, ingredients);
-
-                            // Navigate back to the previous screen
                             Navigator.of(context).pop();
                           }
                         },
@@ -338,12 +325,9 @@ class _CreateRecipeState extends State<CreateRecipe> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                  right: 16.0), // Ajusta el valor según sea necesario
+              padding: const EdgeInsets.only(right: 16.0),
               child: IconButton(
-                padding: const EdgeInsets.only(
-                    right: 8.0,
-                    top: 16.0), // Ajusta el valor según sea necesario
+                padding: const EdgeInsets.only(right: 8.0, top: 16.0),
                 icon: const Icon(Icons.delete, color: Colors.red),
                 onPressed: () {
                   setState(() {
@@ -358,11 +342,10 @@ class _CreateRecipeState extends State<CreateRecipe> {
               const EdgeInsets.only(left: 18.0, right: 32.0, top: 4, bottom: 0),
           child: TextButton(
             onPressed: () {
-              // Añadir un nuevo TextEditingController para el nuevo ingrediente
               _ingredientControllers.add(TextEditingController());
               setState(() {});
             },
-            child: Row(
+            child: const Row(
               children: [
                 Icon(Icons.add, color: Color.fromARGB(255, 110, 8, 211)),
                 SizedBox(width: 5),

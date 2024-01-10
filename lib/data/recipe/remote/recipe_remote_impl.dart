@@ -27,7 +27,6 @@ class RecipeRemoteImpl {
 
         return randomRecipe;
       } else {
-        // Manejar el caso en que la lista de recetas está vacía.
         throw Exception("La lista de recetas está vacía");
       }
     } catch (e) {
@@ -35,7 +34,8 @@ class RecipeRemoteImpl {
     }
   }
 
-  Future<List<RecipeCategoryRemoteModel>> getRecipeByCategory(String category) async {
+  Future<List<RecipeCategoryRemoteModel>> getRecipeByCategory(
+      String category) async {
     try {
       final response = await _networkClient.dio.get(
           NetworkConstants.RECIPE_CATEGORIES_PATH,
@@ -44,10 +44,34 @@ class RecipeRemoteImpl {
           response.data as Map<String, dynamic>;
       final List<dynamic> recipesList = responseData["meals"];
 
-      return recipesList.map((e) => RecipeCategoryRemoteModel.fromJson(e)).toList();
+      return recipesList
+          .map((e) => RecipeCategoryRemoteModel.fromJson(e))
+          .toList();
     } catch (e) {
-      print("Error during API request: $e");
+      throw RemoteErrorMapper.getException(e);
+    }
+  }
 
+  Future<RecipeRemoteModel> getRecipeByName(String name) async {
+    try {
+      final response = await _networkClient.dio
+          .get(NetworkConstants.RECIPE_NAME_PATH, queryParameters: {"s": name});
+
+      final Map<String, dynamic> responseData =
+          response.data as Map<String, dynamic>;
+      final List<dynamic> mealsList = responseData["meals"];
+
+      if (mealsList.isNotEmpty) {
+        final Map<String, dynamic> recipeByNameData = mealsList[0];
+
+        final RecipeRemoteModel recipeByName =
+            RecipeRemoteModel.fromJson(recipeByNameData);
+
+        return recipeByName;
+      } else {
+        throw Exception("La lista de recetas está vacía");
+      }
+    } catch (e) {
       throw RemoteErrorMapper.getException(e);
     }
   }

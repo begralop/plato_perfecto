@@ -33,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
     User? currentUser = Auth().currentUser;
     if (currentUser != null) {
       setState(() {
-        displayName = currentUser.displayName ??  "User";
+        displayName = currentUser.displayName ?? "User";
         displayEmail = currentUser.email ?? "Email";
         displayImage = currentUser.photoURL != null
             ? NetworkImage(currentUser.photoURL!)
@@ -46,9 +46,9 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
+      backgroundColor: const Color.fromRGBO(232, 232, 232, 1.0),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 55, horizontal: 26),
+        padding: const EdgeInsets.only(top: 36.0, left: 32.0, right: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -75,7 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: displayImage, // Reemplaza con tu imagen
+                    backgroundImage: displayImage,
                   ),
                 ),
               ],
@@ -91,12 +91,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(width: 16),
                 Flexible(
-        child: Text(
-                  displayName,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    displayName,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
-      ),
-                
               ],
             ),
             const SizedBox(height: 16),
@@ -110,27 +110,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(width: 16),
                 Flexible(
-        child: Text(
-                  displayEmail,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    displayEmail,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
-      ),
               ],
             ),
-
-            const SizedBox(height: 20), // Espaciado antes del botón
-            // Botón para desloguearse
+            const SizedBox(height: 20),
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.center, // Alineación a la izquierda
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
                   onPressed: () {
                     signOut();
                   },
-                  child: Row(
+                  child: const Row(
                     children: [
-                      SizedBox(width: 8), // Espaciado entre el icono y el texto
+                      SizedBox(width: 8),
                       Text(
                         'Cerrar Sesión',
                         style: TextStyle(

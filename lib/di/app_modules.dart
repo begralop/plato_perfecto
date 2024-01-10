@@ -1,4 +1,3 @@
-
 import 'package:get_it/get_it.dart';
 import 'package:plato_perfecto/data/categories/category_data_impl.dart';
 import 'package:plato_perfecto/data/categories/remote/category_remote_impl.dart';
@@ -23,17 +22,20 @@ class AppModules {
     inject.registerSingleton(NetworkClient());
   }
 
-  _setupRecipeModule() {   
+  _setupRecipeModule() {
     inject.registerFactory(() => RecipeRemoteImpl(networkClient: inject.get()));
     inject.registerFactory<RecipesRepository>(
         () => RecipeDataImpl(remoteImpl: inject.get()));
-    inject.registerFactory(() => RecipeViewModel(recipesRepository: inject.get()));
+    inject.registerFactory(
+        () => RecipeViewModel(recipesRepository: inject.get()));
   }
 
   _setupCategoriesModule() {
-    inject.registerFactory(() => CategoryRemoteImpl(networkClient: inject.get()));
+    inject
+        .registerFactory(() => CategoryRemoteImpl(networkClient: inject.get()));
     inject.registerFactory<CategoryRepository>(
         () => CategoryDataImpl(remoteImpl: inject.get()));
-    inject.registerFactory(() => CategoriesViewModel(categoriesRepository: inject.get()));
+    inject.registerFactory(
+        () => CategoriesViewModel(categoriesRepository: inject.get()));
   }
 }

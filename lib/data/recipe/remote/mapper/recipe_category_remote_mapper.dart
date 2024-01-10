@@ -1,6 +1,4 @@
 import 'package:plato_perfecto/data/categories/remote/model/category_remote_model.dart';
-import 'package:plato_perfecto/data/recipe/remote/model/recipe_remote_model.dart';
-import 'package:plato_perfecto/model/recipe.dart';
 import 'package:plato_perfecto/model/recipe_category_model.dart';
 
 class RecipeCategoryRemoteMapper {
