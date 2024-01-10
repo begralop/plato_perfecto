@@ -16,11 +16,10 @@ class _HomePageNavbarState extends State<HomePageNavbar> {
 PageRouteBuilder _customPageRouteBuilder() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) {
-        // Esta es la pantalla que se abrirá
         return CreateRecipe();
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0); // desde la parte inferior
+        const begin = Offset(0.0, 1.0); 
         const end = Offset.zero;
         const curve = Curves.easeInOut;
 
@@ -28,7 +27,6 @@ PageRouteBuilder _customPageRouteBuilder() {
 
         var offsetAnimation = animation.drive(tween);
 
-        // Aplica la animación de deslizamiento desde abajo hacia arriba
         return SlideTransition(position: offsetAnimation, child: child);
       },
     );
@@ -105,14 +103,14 @@ PageRouteBuilder _customPageRouteBuilder() {
                   label: "Home",
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.list),
-                  selectedIcon: Icon(Icons.list_outlined),
-                  label: "Recetas",
+                  icon: Icon(Icons.list_outlined),
+                  selectedIcon: Icon(Icons.list),
+                  label: "Mis recetas",
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.favorite_border),
-                  selectedIcon: Icon(Icons.favorite),
-                  label: "Favoritas",
+                  icon: Icon(Icons.question_mark_outlined),
+                  selectedIcon: Icon(Icons.question_mark),
+                  label: "Receta random",
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.person_outline),

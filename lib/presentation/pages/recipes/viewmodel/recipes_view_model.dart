@@ -9,7 +9,7 @@ class RecipeViewModel extends BaseViewModel {
   final RecipesRepository _recipesRepository;
 
   final StreamController<ResourceState<Recipe>> getRandomRecipeState = StreamController();
-    final StreamController<ResourceState<List<RecipeCategoryModel>>> getRecipeListState = StreamController();
+final StreamController<ResourceState<List<RecipeCategoryModel>>> getRecipeListState = StreamController.broadcast();
 
 
   RecipeViewModel({required RecipesRepository recipesRepository}) : _recipesRepository = recipesRepository;

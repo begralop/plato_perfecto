@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plato_perfecto/presentation/pages/favorite/favorite_page.dart';
+import 'package:plato_perfecto/presentation/pages/randomrecipe/random_recipe_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page.dart';
 import 'package:plato_perfecto/presentation/pages/home/home_page_navbar.dart';
 import 'package:plato_perfecto/presentation/pages/login/login_page.dart';
@@ -12,7 +12,6 @@ import 'package:plato_perfecto/presentation/pages/register/register_screen.dart'
 import 'package:plato_perfecto/presentation/pages/splash/splash_screen.dart';
 
 class NavigationRoutes {
-  // ignore: constant_identifier_names
   static const INITIAL_ROUTE = "/";
 
   static const LOGIN_ROUTE = "/login";
@@ -27,12 +26,11 @@ class NavigationRoutes {
       "$RECIPES_LIST_ROUTE/$_DETAIL_RECIPE_ROUTE";
   static const DETAIL_FAVORITE_ROUTE =
       "$FAVOURITE_ROUTE/$_DETAIL_FAVORITE_ROUTE";
-
-  //static const ADD_RECIPE_ROUTE = "$HOME_ROUTE/$_ADD_RECIPE_ROUTE";
-
-  // static const _ADD_RECIPE_ROUTE = "fourth";
+  static const DETAIL_HOME_ROUTE =
+      "$HOME_ROUTE/$_DETAIL_HOME_ROUTE";
   static const _DETAIL_RECIPE_ROUTE = "detail";
   static const _DETAIL_FAVORITE_ROUTE = "detail";
+  static const _DETAIL_HOME_ROUTE = "detail";
 }
 
 final GoRouter router =
@@ -58,6 +56,23 @@ final GoRouter router =
           GoRoute(
             path: NavigationRoutes.HOME_ROUTE,
             builder: (context, state) => HomePage(),
+            routes: [
+              GoRoute(
+                path: NavigationRoutes._DETAIL_HOME_ROUTE,
+                builder: (context, state) {
+                  final Map<String, dynamic> params =
+                      state.extra as Map<String, dynamic>;
+
+                  return RecipesDetail(
+                    recipeName: params['name'] ?? '',
+                    image: params['image'] ?? NetworkImage(''),
+                    people: params['people'] ?? '',
+                    time: params['time'] ?? '',
+                    ingredients: params['ingredients'] ?? ['1', '2'],
+                  );
+                },
+              )
+            ],
           ),
         ]),
         StatefulShellBranch(routes: [
@@ -86,7 +101,7 @@ final GoRouter router =
         StatefulShellBranch(routes: [
           GoRoute(
             path: NavigationRoutes.FAVOURITE_ROUTE,
-            builder: (context, state) => FavoritePage(),
+            builder: (context, state) => RandomRecipePage(),
             routes: [
               GoRoute(
                 path: NavigationRoutes._DETAIL_FAVORITE_ROUTE,
@@ -96,8 +111,8 @@ final GoRouter router =
 
                   return RecipesDetail(
                     recipeName: params['name'] ?? '',
-                    image: params['image'] ??
-                        "assets/images/pizza-carbonara.jpg",
+                    image:
+                        params['image'] ?? "assets/images/pizza-carbonara.jpg",
                     people: params['people'] ?? '',
                     time: params['time'] ?? '',
                     ingredients: params['ingredients'] ?? ['1', '2'],

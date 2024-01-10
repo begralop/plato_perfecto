@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -30,8 +28,7 @@ class _HomePageState extends State<HomePage> {
   final RecipeViewModel _recipeViewModel = inject<RecipeViewModel>();
   List<Category> _categoriesList = [];
   List<RecipeCategoryModel> _recipesList = [];
-late StreamSubscription<ResourceState<List<RecipeCategoryModel>>>
-      _recipeListSubscription;
+
   late TextEditingController _searchController;
   String selectedCategoryName =
       ""; // Variable para almacenar el nombre de la categoría seleccionada
@@ -62,31 +59,8 @@ late StreamSubscription<ResourceState<List<RecipeCategoryModel>>>
           break;
       }
     });
-_recipeListSubscription =
-        _recipeViewModel.getRecipeListState.stream.listen((state) {
-      switch (state.status) {
-        case Status.LOADING:
-          LoadingView.show(context);
-          break;
-        case Status.SUCCESS:
-          LoadingView.hide();
-          setState(() {
-            _recipesList = state.data!;
-          });
-          break;
-        case Status.ERROR:
-          LoadingView.hide();
-          ErrorView.show(context, state.exception!.toString(), () {
-            _recipeViewModel.fetchRecipeByCategory(selectedCategoryName);
-          });
-          break;
-      }
-    });
+
     _categoriesViewModel.fetchCategoriesList();
-  }  @override
-  void dispose() {
-    _recipeListSubscription.cancel();
-    super.dispose();
   }
 
   Future<void> getUser() async {
@@ -108,8 +82,9 @@ _recipeListSubscription =
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromRGBO(232, 232, 232, 1.0),
+      
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 55, horizontal: 32),
+        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 26),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -136,15 +111,15 @@ _recipeListSubscription =
                   style: TextStyle(
                       fontSize: 18, color: Color.fromRGBO(129, 129, 129, 1.0)),
                 ),
-                //     Text(_categoriesList[1].strCategory)
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Container(
+                    height: 40,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8.0),
@@ -154,7 +129,7 @@ _recipeListSubscription =
                       decoration: InputDecoration(
                         hintText: "Buscar receta...",
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: -8.0),
                       ),
                     ),
                   ),
@@ -201,7 +176,31 @@ _recipeListSubscription =
                                 selectedCategoryName =
                                     category.strCategory ?? "";
 
-                                
+                                _recipeViewModel.getRecipeListState.stream
+                                    .listen((state) {
+                                  switch (state.status) {
+                                    case Status.LOADING:
+                                      LoadingView.show(context);
+                                      break;
+                                    case Status.SUCCESS:
+                                      LoadingView.hide();
+                                      setState(() {
+                                        _recipesList = state.data!;
+                                      });
+                                      break;
+                                    case Status.ERROR:
+                                      LoadingView.hide();
+                                      ErrorView.show(
+                                          context, state.exception!.toString(),
+                                          () {
+                                        _recipeViewModel.fetchRecipeByCategory(
+                                            selectedCategoryName);
+                                      });
+                                      break;
+                                  }
+                                });
+                                _recipeViewModel.fetchRecipeByCategory(
+                                    selectedCategoryName);
                               });
                             },
                             style: ElevatedButton.styleFrom(
@@ -247,7 +246,7 @@ _recipeListSubscription =
                 Text(
                   "Mostrando: ",
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.normal,
                     color: Colors.black, // Color negro para "Mostrando"
                   ),
@@ -263,79 +262,91 @@ _recipeListSubscription =
                 ),
               ],
             ),
-            Text(_recipesList.length.toString()),
-            /* Expanded(
-              child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    mainAxisSpacing: 4,
-                    crossAxisSpacing: 4,
-                    crossAxisCount: 3,
-                  ),
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-
-                     final recipe = _recipesList[index];
-
-                    return Card(
-                      child: InkWell(
-                        onTap: () {
-                          context.go(
-                            NavigationRoutes.DETAIL_RECIPE_ROUTE,
-                            extra: {
-                              'name': recipe.strMeal,
-                              'image': recipe.strMealThumb.isNotEmpty
-                                  ? NetworkImage(recipe!.strMealThumb)
-                                  : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
-                              'people': "undefined",
-                              'time': "time",
-                              'ingredients': recipe.idMeal,
+            if (_recipesList.isNotEmpty)
+              Expanded(
+                child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4,
+                      crossAxisCount: 3,
+                    ),
+                    itemCount: _recipesList.length,
+                    itemBuilder: (context, index) {
+                      if (index < _recipesList.length) {
+                        final recipe = _recipesList[index];
+                        return Card(
+                          child: InkWell(
+                            onTap: () {
+                              context.go(
+                                NavigationRoutes.DETAIL_RECIPE_ROUTE,
+                                extra: {
+                                  'name': recipe.strMeal,
+                                  'image': recipe.strMealThumb.isNotEmpty
+                                      ? NetworkImage(recipe!.strMealThumb)
+                                      : 'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg',
+                                  'people': "undefined",
+                                  'time': "time",
+                                  'ingredients': [recipe.idMeal],
+                                },
+                              );
                             },
-                          );
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Opacity(
-                                  opacity: 0.9,
-                                  child: Container(
-                                    width: 80,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      image: DecorationImage(
-                                        image: recipe.strMealThumb.isNotEmpty
-                                            ? NetworkImage(recipe!.strMealThumb)
-                                            : NetworkImage(
-                                                'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg'),
-                                        fit: BoxFit.cover,
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Opacity(
+                                      opacity: 0.9,
+                                      child: Container(
+                                        width: 80,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          image: DecorationImage(
+                                            image: recipe
+                                                    .strMealThumb.isNotEmpty
+                                                ? NetworkImage(
+                                                    recipe!.strMealThumb)
+                                                : NetworkImage(
+                                                    'https://cdn.computerhoy.com/sites/navi.axelspringer.es/public/media/image/2022/01/plato-cuchillo-tenedor-2577547.jpg'),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                Text(
-                                  recipe.strMeal,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    backgroundColor:
-                                        Color.fromARGB(255, 110, 8, 211)
-                                            .withOpacity(0.6),
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Text(
+                                      // Puedes personalizar el texto según tus necesidades
+                                      recipe.strMeal,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ); 
-                  }),
-            ), */
+                          ),
+                        );
+                      }
+                    }),
+              )
+            else
+              Text(
+                "Seleccione una categoría para mostrar recetas.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromRGBO(129, 129, 129,
+                      1.0), // Puedes ajustar el color según tu preferencia
+                ),
+              ),
           ],
         ),
       ),

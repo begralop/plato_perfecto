@@ -95,11 +95,7 @@ class _RecipesDetailState extends State<RecipesDetail> {
                               ),
                             ),
                           ),
-                          Icon(
-                            Icons.favorite,
-                            size: 40,
-                            color: Color.fromARGB(255, 110, 8, 211),
-                          )
+                          
                         ],
                       ),
                       SizedBox(height: 8),
